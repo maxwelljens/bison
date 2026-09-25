@@ -1,0 +1,9 @@
+# Godot 4+ specific ignores
+.godot/
+/android/
+
+# Fetched tutorial scrapes
+docs/theory/
+
+# Agent tooling state
+.crush/
