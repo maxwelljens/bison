@@ -1,0 +1,19 @@
+[remap]
+
+importer="oggvorbisstr"
+type="AudioStreamOggVorbis"
+uid="uid://sdyhqqcfrciq"
+path="res://.godot/imported/sfx_damage_hit4.ogg-51b8767a48c217670d7a255d80b2e837.oggvorbisstr"
+
+[deps]
+
+source_file="res://Audio/SFX/General Sounds/Simple Damage Sounds/sfx_damage_hit4.ogg"
+dest_files=["res://.godot/imported/sfx_damage_hit4.ogg-51b8767a48c217670d7a255d80b2e837.oggvorbisstr"]
+
+[params]
+
+loop=false
+loop_offset=0
+bpm=0
+beat_count=0
+bar_beats=4

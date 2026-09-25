@@ -1,0 +1,19 @@
+[remap]
+
+importer="oggvorbisstr"
+type="AudioStreamOggVorbis"
+uid="uid://ccy2r22hjcypk"
+path="res://.godot/imported/sfx_sound_bling.ogg-fe4a4c57906f9ede450769a2dc4581b7.oggvorbisstr"
+
+[deps]
+
+source_file="res://Audio/SFX/General Sounds/Weird Sounds/sfx_sound_bling.ogg"
+dest_files=["res://.godot/imported/sfx_sound_bling.ogg-fe4a4c57906f9ede450769a2dc4581b7.oggvorbisstr"]
+
+[params]
+
+loop=false
+loop_offset=0
+bpm=0
+beat_count=0
+bar_beats=4

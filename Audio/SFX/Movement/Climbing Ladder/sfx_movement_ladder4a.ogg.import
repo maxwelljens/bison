@@ -1,0 +1,19 @@
+[remap]
+
+importer="oggvorbisstr"
+type="AudioStreamOggVorbis"
+uid="uid://kf3ff3g255gf"
+path="res://.godot/imported/sfx_movement_ladder4a.ogg-fec29027c7193b801ca251d643980385.oggvorbisstr"
+
+[deps]
+
+source_file="res://Audio/SFX/Movement/Climbing Ladder/sfx_movement_ladder4a.ogg"
+dest_files=["res://.godot/imported/sfx_movement_ladder4a.ogg-fec29027c7193b801ca251d643980385.oggvorbisstr"]
+
+[params]
+
+loop=false
+loop_offset=0
+bpm=0
+beat_count=0
+bar_beats=4

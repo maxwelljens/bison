@@ -1,0 +1,19 @@
+[remap]
+
+importer="oggvorbisstr"
+type="AudioStreamOggVorbis"
+uid="uid://c0wx8bogavg66"
+path="res://.godot/imported/sfx_weapon_singleshot4.ogg-db0b02f407334e99bfc0c0242da25f99.oggvorbisstr"
+
+[deps]
+
+source_file="res://Audio/SFX/Weapons/Single Shot Sounds/sfx_weapon_singleshot4.ogg"
+dest_files=["res://.godot/imported/sfx_weapon_singleshot4.ogg-db0b02f407334e99bfc0c0242da25f99.oggvorbisstr"]
+
+[params]
+
+loop=false
+loop_offset=0
+bpm=0
+beat_count=0
+bar_beats=4

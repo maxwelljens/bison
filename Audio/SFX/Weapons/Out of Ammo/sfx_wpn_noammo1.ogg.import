@@ -1,0 +1,19 @@
+[remap]
+
+importer="oggvorbisstr"
+type="AudioStreamOggVorbis"
+uid="uid://7g34kx32lfq0"
+path="res://.godot/imported/sfx_wpn_noammo1.ogg-73b3252545008c084694fb6e6305de87.oggvorbisstr"
+
+[deps]
+
+source_file="res://Audio/SFX/Weapons/Out of Ammo/sfx_wpn_noammo1.ogg"
+dest_files=["res://.godot/imported/sfx_wpn_noammo1.ogg-73b3252545008c084694fb6e6305de87.oggvorbisstr"]
+
+[params]
+
+loop=false
+loop_offset=0
+bpm=0
+beat_count=0
+bar_beats=4

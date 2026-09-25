@@ -23,9 +23,13 @@ Read this before touching anything.
 
 - `project.godot` — engine config and input map.
 - `Levels/` — level scenes. `test_level.tscn` is the main scene.
-- `Scripts/` — GDScript sources: `player.gd`; `pathfinding/`
-  (`platformer_grid.gd`, `jump_profile.gd`, `path_data.gd`, `path_waypoint.gd`,
-  `platformer_pathfinder.gd`, `grid_debug_draw.gd`); `bot/`
+- `Scenes/` — reusable scenes: `player.tscn` (Player root: state-machine
+  children, `AnimatedSprite2D`, collision, camera).
+- `Scripts/` — GDScript sources: `Player/` (`player.gd`, `player_state.gd`,
+  `grounded.gd`, `airborne.gd`, `player_animator.gd`); `Pathfinding/`
+  (`platformer_grid.gd`, `jump_profile.gd`, `path_data.gd`,
+  `path_waypoint.gd`, `platformer_pathfinder.gd`,
+  `debug/grid_debug_draw.gd`); `Bot/`
   (`platformer_bot.gd`, `bot_path_follower.gd`).
 - `Textures/` — art: `Tilemap/` (tileset textures), `Tiles/Default` and
   `Tiles/Transparent` (individual tiles), `Sample.png`.
@@ -36,20 +40,26 @@ Read this before touching anything.
 - `Levels/test_level.tscn` — `TestLevel` (Node2D) contains:
   - `TileMapLayer` — tile data plus a `TileSet` with a physics layer on
 	collision_layer 1 (the player's default collision mask matches it).
-  - `Player` (CharacterBody2D, `Scripts/player.gd` attached) with children:
-    `Sprite2D` (single frame, `tile_0300.png`), `CollisionShape2D`
-    (RectangleShape2D 12×11 at (0, 2.5)), and `Camera2D` (follows the player
-    for free by being a child).
-- `Scripts/player.gd` — platformer controller: run with
-  acceleration/friction, jump with coyote time + jump buffering + variable
-  jump height, terminal-velocity clamp, sprite flip on input direction.
+  - `Player` (instance of `Scenes/player.tscn`) with children:
+    `StateMachine` (holds the `Grounded`/`Airborne` state nodes),
+    `Animator`, `AnimatedSprite2D` (SpriteFrames: idle/jump/run/stop),
+    `CollisionShape2D` (RectangleShape2D 12×11 at (0, 2.5)), and `Camera2D`
+    (follows the player for free by being a child).
+- `Scripts/Player/` — player-driven two-state machine: the player gathers
+  input once per frame, the current state (`grounded.gd` / `airborne.gd`)
+  runs the frame's physics and ends with `move_and_slide()`, transitions
+  are evaluated on that fresh floor state (Grounded exits only when the
+  floor is lost AND its coyote window expired, so jump launching stays
+  inside it), and states emit animation intents (IDLE/RUN/STOP/AIR) that
+  `player_animator.gd` maps onto the SpriteFrames. `player_state.gd` is
+  the base class (`setup`/`enter`/`exit`/`physics_process`).
 - Input map (`project.godot`): `move_left` (A/←), `move_right` (D/→),
   `jump` (Space/W/↑). Keyboard only, no gamepad bindings.
 - Scene-level tuning overrides on the Player node (user-tuned in the
   Inspector; the scene is the source of truth, currently
   `move_speed = 50.0`, `jump_velocity = -150.0`). Script defaults differ
   and only apply where a scene does not override them.
-- Pathfinding (increment-based delivery): `Scripts/pathfinding/` foundations
+- Pathfinding (increment-based delivery): `Scripts/Pathfinding/` foundations
   landed (typed waypoints, jump model, TileMapLayer→grid extraction) and
   headlessly probed, plus a `GridDebugDraw` overlay and a `Pathfinder` route
   preview (both draw in the editor and in-game) for visual verification.
@@ -82,9 +92,9 @@ Read this before touching anything.
   hops proportional to their width. Targets not on the descent side of any
   single-impulse arc (high nearby ledges) keep the classic full jump.
   Awaiting re-verification.
-- Known gaps (intentionally out of scope so far): no animations (single
-  sprite, only `flip_h`), the Player is embedded in the level instead of
-  being its own scene, no camera limits, no UI/health/death.
+- Known gaps (intentionally out of scope so far): no camera limits, no
+  UI/health/death, only the Grounded/Airborne states exist so far (no
+  fall-specific art — AIR maps to the jump frames).
 
 ## Coding directives (MUST follow)
 
@@ -149,7 +159,7 @@ feedback, only the user can. Therefore:
 ## Running and verifying
 
 - Run the game: `godot --path .`, or open the project in the editor.
-- Syntax check: `godot --headless --path . --check-only --script res://Scripts/player.gd`
+- Syntax check: `godot --headless --path . --check-only --script res://Scripts/Player/player.gd`
 - Load check: `godot --headless --path . --quit`
 - Note: headless/editor runs may normalize scene files (stamp `uid=` onto
   ext_resources, generate `*.gd.uid` companions). Expected and harmless.
@@ -194,7 +204,10 @@ Verified facts about Godot 4.7.x as used in this project (probed 2026-09-25).
 
 ## Player tuning reference
 
-Script defaults (`Scripts/player.gd`); scene overrides on the Player node
+Script defaults (`Scripts/Player/player.gd`; `coyote_time`,
+`jump_buffer_time` and `run_min_speed` live on `PlayerGrounded` in
+`Scripts/Player/grounded.gd`, `stop_hold_time` on
+`Scripts/Player/player_animator.gd`); scene overrides on the Player node
 take precedence.
 
 | Property | Default | Meaning |
@@ -207,4 +220,5 @@ take precedence.
 | `jump_buffer_time` | 0.1 s | jump pressed this long before landing fires on touchdown |
 | `jump_cut_multiplier` | 0.5 | upward velocity kept when jump is released early (short hop) |
 | `max_fall_speed` | 600.0 px/s | terminal velocity clamp |
-| `sprite` | node ref | `Sprite2D` flipped via `flip_h` on input direction |
+| `run_min_speed` (`PlayerGrounded`) | 10.0 px/s | releasing move input at/above this speed shows the stop animation |
+| `stop_hold_time` (`PlayerAnimator`) | 0.2 s | how long the stop one-shot holds before idle resumes |

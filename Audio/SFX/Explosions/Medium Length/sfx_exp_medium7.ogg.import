@@ -1,0 +1,19 @@
+[remap]
+
+importer="oggvorbisstr"
+type="AudioStreamOggVorbis"
+uid="uid://cplicoxwrbn77"
+path="res://.godot/imported/sfx_exp_medium7.ogg-116cb939bf2f60d729dd181ff9cef067.oggvorbisstr"
+
+[deps]
+
+source_file="res://Audio/SFX/Explosions/Medium Length/sfx_exp_medium7.ogg"
+dest_files=["res://.godot/imported/sfx_exp_medium7.ogg-116cb939bf2f60d729dd181ff9cef067.oggvorbisstr"]
+
+[params]
+
+loop=false
+loop_offset=0
+bpm=0
+beat_count=0
+bar_beats=4

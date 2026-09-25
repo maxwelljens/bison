@@ -1,0 +1,19 @@
+[remap]
+
+importer="oggvorbisstr"
+type="AudioStreamOggVorbis"
+uid="uid://dmmoibhl6qran"
+path="res://.godot/imported/sfx_wpn_grenadewhistle2.ogg-259dc1ea3e80cf22ea6c1816cd074a2f.oggvorbisstr"
+
+[deps]
+
+source_file="res://Audio/SFX/Weapons/Grenade Whistles/sfx_wpn_grenadewhistle2.ogg"
+dest_files=["res://.godot/imported/sfx_wpn_grenadewhistle2.ogg-259dc1ea3e80cf22ea6c1816cd074a2f.oggvorbisstr"]
+
+[params]
+
+loop=false
+loop_offset=0
+bpm=0
+beat_count=0
+bar_beats=4

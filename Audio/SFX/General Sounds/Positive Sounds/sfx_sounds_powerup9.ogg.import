@@ -1,0 +1,19 @@
+[remap]
+
+importer="oggvorbisstr"
+type="AudioStreamOggVorbis"
+uid="uid://bkqhiddhklkfs"
+path="res://.godot/imported/sfx_sounds_powerup9.ogg-c1a145358d02b909c680525d9d22fde3.oggvorbisstr"
+
+[deps]
+
+source_file="res://Audio/SFX/General Sounds/Positive Sounds/sfx_sounds_powerup9.ogg"
+dest_files=["res://.godot/imported/sfx_sounds_powerup9.ogg-c1a145358d02b909c680525d9d22fde3.oggvorbisstr"]
+
+[params]
+
+loop=false
+loop_offset=0
+bpm=0
+beat_count=0
+bar_beats=4

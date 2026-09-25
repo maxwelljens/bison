@@ -1,0 +1,19 @@
+[remap]
+
+importer="oggvorbisstr"
+type="AudioStreamOggVorbis"
+uid="uid://ldvc6ft5oobr"
+path="res://.godot/imported/sfx_sounds_pause3_out.ogg-9fba828e6ff8631e2ae02ebd4b0d3b87.oggvorbisstr"
+
+[deps]
+
+source_file="res://Audio/SFX/General Sounds/Pause Sounds/sfx_sounds_pause3_out.ogg"
+dest_files=["res://.godot/imported/sfx_sounds_pause3_out.ogg-9fba828e6ff8631e2ae02ebd4b0d3b87.oggvorbisstr"]
+
+[params]
+
+loop=false
+loop_offset=0
+bpm=0
+beat_count=0
+bar_beats=4

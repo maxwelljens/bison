@@ -1,0 +1,19 @@
+[remap]
+
+importer="oggvorbisstr"
+type="AudioStreamOggVorbis"
+uid="uid://b7ljrx35rvrcs"
+path="res://.godot/imported/sfx_wpn_laser 10.ogg-7db6935c6cc5fdcb9ef7bac00fced56c.oggvorbisstr"
+
+[deps]
+
+source_file="res://Audio/SFX/Weapons/Lasers/sfx_wpn_laser 10.ogg"
+dest_files=["res://.godot/imported/sfx_wpn_laser 10.ogg-7db6935c6cc5fdcb9ef7bac00fced56c.oggvorbisstr"]
+
+[params]
+
+loop=false
+loop_offset=0
+bpm=0
+beat_count=0
+bar_beats=4

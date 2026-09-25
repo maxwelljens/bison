@@ -1,0 +1,19 @@
+[remap]
+
+importer="oggvorbisstr"
+type="AudioStreamOggVorbis"
+uid="uid://v151kcwid7ig"
+path="res://.godot/imported/sfx_deathscream_robot2.ogg-a217da726d7d4a8138cc1f94abdad73b.oggvorbisstr"
+
+[deps]
+
+source_file="res://Audio/SFX/Death Screams/Robot/sfx_deathscream_robot2.ogg"
+dest_files=["res://.godot/imported/sfx_deathscream_robot2.ogg-a217da726d7d4a8138cc1f94abdad73b.oggvorbisstr"]
+
+[params]
+
+loop=false
+loop_offset=0
+bpm=0
+beat_count=0
+bar_beats=4

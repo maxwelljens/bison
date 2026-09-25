@@ -1,0 +1,19 @@
+[remap]
+
+importer="oggvorbisstr"
+type="AudioStreamOggVorbis"
+uid="uid://7ni80kvqi26"
+path="res://.godot/imported/sfx_sounds_falling7.ogg-24707a11c222d9fc2ab7f52103047408.oggvorbisstr"
+
+[deps]
+
+source_file="res://Audio/SFX/Movement/Falling Sounds/sfx_sounds_falling7.ogg"
+dest_files=["res://.godot/imported/sfx_sounds_falling7.ogg-24707a11c222d9fc2ab7f52103047408.oggvorbisstr"]
+
+[params]
+
+loop=false
+loop_offset=0
+bpm=0
+beat_count=0
+bar_beats=4

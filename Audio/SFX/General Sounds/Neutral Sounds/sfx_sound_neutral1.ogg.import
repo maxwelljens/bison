@@ -1,0 +1,19 @@
+[remap]
+
+importer="oggvorbisstr"
+type="AudioStreamOggVorbis"
+uid="uid://cxv72a6yo1htt"
+path="res://.godot/imported/sfx_sound_neutral1.ogg-b39247fac6153f66b2cb0fefe49b3340.oggvorbisstr"
+
+[deps]
+
+source_file="res://Audio/SFX/General Sounds/Neutral Sounds/sfx_sound_neutral1.ogg"
+dest_files=["res://.godot/imported/sfx_sound_neutral1.ogg-b39247fac6153f66b2cb0fefe49b3340.oggvorbisstr"]
+
+[params]
+
+loop=false
+loop_offset=0
+bpm=0
+beat_count=0
+bar_beats=4

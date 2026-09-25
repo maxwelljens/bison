@@ -1,0 +1,19 @@
+[remap]
+
+importer="oggvorbisstr"
+type="AudioStreamOggVorbis"
+uid="uid://df2mqtae3uh50"
+path="res://.godot/imported/sfx_movement_stairs3loop.ogg-47173431e5ac63ec1df6f61259e27d1b.oggvorbisstr"
+
+[deps]
+
+source_file="res://Audio/SFX/Movement/Climbing Stairs/sfx_movement_stairs3loop.ogg"
+dest_files=["res://.godot/imported/sfx_movement_stairs3loop.ogg-47173431e5ac63ec1df6f61259e27d1b.oggvorbisstr"]
+
+[params]
+
+loop=false
+loop_offset=0
+bpm=0
+beat_count=0
+bar_beats=4

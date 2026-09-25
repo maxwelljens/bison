@@ -1,0 +1,19 @@
+[remap]
+
+importer="oggvorbisstr"
+type="AudioStreamOggVorbis"
+uid="uid://cx14q4jd3issu"
+path="res://.godot/imported/sfx_sounds_button7.ogg-b062b576572024dc8719568d4ed8a04a.oggvorbisstr"
+
+[deps]
+
+source_file="res://Audio/SFX/General Sounds/Buttons/sfx_sounds_button7.ogg"
+dest_files=["res://.godot/imported/sfx_sounds_button7.ogg-b062b576572024dc8719568d4ed8a04a.oggvorbisstr"]
+
+[params]
+
+loop=false
+loop_offset=0
+bpm=0
+beat_count=0
+bar_beats=4

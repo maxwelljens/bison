@@ -1,0 +1,19 @@
+[remap]
+
+importer="oggvorbisstr"
+type="AudioStreamOggVorbis"
+uid="uid://wfcfalq4voj5"
+path="res://.godot/imported/sfx_sounds_high6.ogg-4380843174ee4a16608aec4c4f54d80c.oggvorbisstr"
+
+[deps]
+
+source_file="res://Audio/SFX/General Sounds/High Pitched Sounds/sfx_sounds_high6.ogg"
+dest_files=["res://.godot/imported/sfx_sounds_high6.ogg-4380843174ee4a16608aec4c4f54d80c.oggvorbisstr"]
+
+[params]
+
+loop=false
+loop_offset=0
+bpm=0
+beat_count=0
+bar_beats=4

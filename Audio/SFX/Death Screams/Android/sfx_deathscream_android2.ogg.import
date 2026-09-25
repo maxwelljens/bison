@@ -1,0 +1,19 @@
+[remap]
+
+importer="oggvorbisstr"
+type="AudioStreamOggVorbis"
+uid="uid://13q4c3vaqxmu"
+path="res://.godot/imported/sfx_deathscream_android2.ogg-428859cff9ba3a4a3878a3429fcf84d3.oggvorbisstr"
+
+[deps]
+
+source_file="res://Audio/SFX/Death Screams/Android/sfx_deathscream_android2.ogg"
+dest_files=["res://.godot/imported/sfx_deathscream_android2.ogg-428859cff9ba3a4a3878a3429fcf84d3.oggvorbisstr"]
+
+[params]
+
+loop=false
+loop_offset=0
+bpm=0
+beat_count=0
+bar_beats=4

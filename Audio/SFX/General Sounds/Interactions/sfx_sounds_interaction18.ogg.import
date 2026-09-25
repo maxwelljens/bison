@@ -1,0 +1,19 @@
+[remap]
+
+importer="oggvorbisstr"
+type="AudioStreamOggVorbis"
+uid="uid://damsybee7hxwn"
+path="res://.godot/imported/sfx_sounds_interaction18.ogg-1e077273c09aa698b8746c9c5759435c.oggvorbisstr"
+
+[deps]
+
+source_file="res://Audio/SFX/General Sounds/Interactions/sfx_sounds_interaction18.ogg"
+dest_files=["res://.godot/imported/sfx_sounds_interaction18.ogg-1e077273c09aa698b8746c9c5759435c.oggvorbisstr"]
+
+[params]
+
+loop=false
+loop_offset=0
+bpm=0
+beat_count=0
+bar_beats=4

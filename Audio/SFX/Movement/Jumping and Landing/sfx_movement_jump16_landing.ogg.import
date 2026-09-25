@@ -1,0 +1,19 @@
+[remap]
+
+importer="oggvorbisstr"
+type="AudioStreamOggVorbis"
+uid="uid://vcqtc33oc0il"
+path="res://.godot/imported/sfx_movement_jump16_landing.ogg-9156d85b0cc282799cdf00aa161f1843.oggvorbisstr"
+
+[deps]
+
+source_file="res://Audio/SFX/Movement/Jumping and Landing/sfx_movement_jump16_landing.ogg"
+dest_files=["res://.godot/imported/sfx_movement_jump16_landing.ogg-9156d85b0cc282799cdf00aa161f1843.oggvorbisstr"]
+
+[params]
+
+loop=false
+loop_offset=0
+bpm=0
+beat_count=0
+bar_beats=4

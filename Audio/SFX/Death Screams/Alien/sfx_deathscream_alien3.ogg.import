@@ -1,0 +1,19 @@
+[remap]
+
+importer="oggvorbisstr"
+type="AudioStreamOggVorbis"
+uid="uid://c6bwygcuem6cq"
+path="res://.godot/imported/sfx_deathscream_alien3.ogg-52e58c299afe6059b57458dce899d80e.oggvorbisstr"
+
+[deps]
+
+source_file="res://Audio/SFX/Death Screams/Alien/sfx_deathscream_alien3.ogg"
+dest_files=["res://.godot/imported/sfx_deathscream_alien3.ogg-52e58c299afe6059b57458dce899d80e.oggvorbisstr"]
+
+[params]
+
+loop=false
+loop_offset=0
+bpm=0
+beat_count=0
+bar_beats=4

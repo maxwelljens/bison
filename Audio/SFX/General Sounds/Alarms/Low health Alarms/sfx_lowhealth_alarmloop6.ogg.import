@@ -1,0 +1,19 @@
+[remap]
+
+importer="oggvorbisstr"
+type="AudioStreamOggVorbis"
+uid="uid://lust08sbvw3m"
+path="res://.godot/imported/sfx_lowhealth_alarmloop6.ogg-df3b0fda3b49b3dae19d795b8d6cb9c1.oggvorbisstr"
+
+[deps]
+
+source_file="res://Audio/SFX/General Sounds/Alarms/Low health Alarms/sfx_lowhealth_alarmloop6.ogg"
+dest_files=["res://.godot/imported/sfx_lowhealth_alarmloop6.ogg-df3b0fda3b49b3dae19d795b8d6cb9c1.oggvorbisstr"]
+
+[params]
+
+loop=false
+loop_offset=0
+bpm=0
+beat_count=0
+bar_beats=4

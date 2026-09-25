@@ -1,0 +1,19 @@
+[remap]
+
+importer="oggvorbisstr"
+type="AudioStreamOggVorbis"
+uid="uid://biygvmmo40jd7"
+path="res://.godot/imported/sfx_deathscream_human14.ogg-ae4e045b6900529999b8c6460137fcbb.oggvorbisstr"
+
+[deps]
+
+source_file="res://Audio/SFX/Death Screams/Human/sfx_deathscream_human14.ogg"
+dest_files=["res://.godot/imported/sfx_deathscream_human14.ogg-ae4e045b6900529999b8c6460137fcbb.oggvorbisstr"]
+
+[params]
+
+loop=false
+loop_offset=0
+bpm=0
+beat_count=0
+bar_beats=4

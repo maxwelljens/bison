@@ -1,0 +1,19 @@
+[remap]
+
+importer="oggvorbisstr"
+type="AudioStreamOggVorbis"
+uid="uid://bsleug2tlaiep"
+path="res://.godot/imported/sfx_sound_shutdown1.ogg-ea15cfb985b2d0105a15e9d252f3518b.oggvorbisstr"
+
+[deps]
+
+source_file="res://Audio/SFX/General Sounds/Weird Sounds/sfx_sound_shutdown1.ogg"
+dest_files=["res://.godot/imported/sfx_sound_shutdown1.ogg-ea15cfb985b2d0105a15e9d252f3518b.oggvorbisstr"]
+
+[params]
+
+loop=false
+loop_offset=0
+bpm=0
+beat_count=0
+bar_beats=4

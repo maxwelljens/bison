@@ -1,0 +1,86 @@
+[gd_scene format=3 uid="uid://g2bnsf747asl"]
+
+[ext_resource type="Script" uid="uid://c8jxxghhbo3bl" path="res://Scripts/Player/player.gd" id="1_cvnsp"]
+[ext_resource type="Texture2D" uid="uid://dfdk82mwfomld" path="res://Textures/Tiles/Transparent/tile_0300.png" id="2_6t5aa"]
+[ext_resource type="Texture2D" uid="uid://dfsjp1mwb3sfv" path="res://Textures/Tiles/Transparent/tile_0301.png" id="3_vgqql"]
+[ext_resource type="Texture2D" uid="uid://cuvsgs2o31nus" path="res://Textures/Tiles/Transparent/tile_0264.png" id="3_x3wgy"]
+[ext_resource type="Texture2D" uid="uid://bvqjd6cy7gr5" path="res://Textures/Tiles/Transparent/tile_0303.png" id="4_fkybt"]
+[ext_resource type="Script" uid="uid://ce326hekkms6n" path="res://Scripts/Player/grounded.gd" id="5_grnd"]
+[ext_resource type="Texture2D" uid="uid://cypmc6s2tnvgb" path="res://Textures/Tiles/Transparent/tile_0262.png" id="6_3smsa"]
+[ext_resource type="Script" uid="uid://dgtal68t3sp8v" path="res://Scripts/Player/airborne.gd" id="6_airb"]
+[ext_resource type="Script" uid="uid://cd4igwjdq8us3" path="res://Scripts/Player/player_animator.gd" id="7_anim"]
+
+[sub_resource type="SpriteFrames" id="SpriteFrames_fmu24"]
+animations = [{
+"frames": [{
+"duration": 1.0,
+"texture": ExtResource("2_6t5aa")
+}],
+"loop": 1,
+"name": &"idle",
+"speed": 5.0
+}, {
+"frames": [{
+"duration": 1.0,
+"texture": ExtResource("3_x3wgy")
+}],
+"loop": 1,
+"name": &"jump",
+"speed": 5.0
+}, {
+"frames": [{
+"duration": 1.0,
+"texture": ExtResource("3_vgqql")
+}, {
+"duration": 1.0,
+"texture": ExtResource("4_fkybt")
+}],
+"loop": 1,
+"name": &"run",
+"speed": 5.0
+}, {
+"frames": [{
+"duration": 1.0,
+"texture": ExtResource("6_3smsa")
+}],
+"loop": 1,
+"name": &"stop",
+"speed": 5.0
+}]
+
+[sub_resource type="RectangleShape2D" id="RectangleShape2D_fmu24"]
+size = Vector2(12, 11)
+
+[node name="Player" type="CharacterBody2D" unique_id=244470271 node_paths=PackedStringArray("state_grounded", "state_airborne", "animator")]
+script = ExtResource("1_cvnsp")
+move_speed = 50.0
+jump_velocity = -150.0
+state_grounded = NodePath("StateMachine/Grounded")
+state_airborne = NodePath("StateMachine/Airborne")
+animator = NodePath("Animator")
+
+[node name="StateMachine" type="Node" parent="." unique_id=34548043]
+
+[node name="Grounded" type="Node" parent="StateMachine" unique_id=1541983663]
+script = ExtResource("5_grnd")
+
+[node name="Airborne" type="Node" parent="StateMachine" unique_id=674892151]
+script = ExtResource("6_airb")
+
+[node name="Animator" type="Node" parent="." unique_id=315617902 node_paths=PackedStringArray("sprite")]
+script = ExtResource("7_anim")
+sprite = NodePath("../AnimatedSprite2D")
+
+[node name="AudioStreamPlayer" type="AudioStreamPlayer" parent="." unique_id=1070832029]
+
+[node name="AnimatedSprite2D" type="AnimatedSprite2D" parent="." unique_id=1544279097]
+sprite_frames = SubResource("SpriteFrames_fmu24")
+animation = &"idle"
+autoplay = "idle"
+
+[node name="CollisionShape2D" type="CollisionShape2D" parent="." unique_id=725637778]
+position = Vector2(0, 2.5)
+shape = SubResource("RectangleShape2D_fmu24")
+debug_color = Color(0, 0.640254, 0.35733178, 0.41960785)
+
+[node name="Camera2D" type="Camera2D" parent="." unique_id=1759240348]

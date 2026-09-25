@@ -1,0 +1,19 @@
+[remap]
+
+importer="oggvorbisstr"
+type="AudioStreamOggVorbis"
+uid="uid://gropw1f5eokt"
+path="res://.godot/imported/sfx_movement_portal1.ogg-b513b69c43e89772ddedd5c133c80565.oggvorbisstr"
+
+[deps]
+
+source_file="res://Audio/SFX/Movement/Portals and Transitions/sfx_movement_portal1.ogg"
+dest_files=["res://.godot/imported/sfx_movement_portal1.ogg-b513b69c43e89772ddedd5c133c80565.oggvorbisstr"]
+
+[params]
+
+loop=false
+loop_offset=0
+bpm=0
+beat_count=0
+bar_beats=4

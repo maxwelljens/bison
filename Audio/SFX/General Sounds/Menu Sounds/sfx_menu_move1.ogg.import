@@ -1,0 +1,19 @@
+[remap]
+
+importer="oggvorbisstr"
+type="AudioStreamOggVorbis"
+uid="uid://bhpiujehl82jp"
+path="res://.godot/imported/sfx_menu_move1.ogg-cfcb782ce3641769f6998e4c65f7846f.oggvorbisstr"
+
+[deps]
+
+source_file="res://Audio/SFX/General Sounds/Menu Sounds/sfx_menu_move1.ogg"
+dest_files=["res://.godot/imported/sfx_menu_move1.ogg-cfcb782ce3641769f6998e4c65f7846f.oggvorbisstr"]
+
+[params]
+
+loop=false
+loop_offset=0
+bpm=0
+beat_count=0
+bar_beats=4

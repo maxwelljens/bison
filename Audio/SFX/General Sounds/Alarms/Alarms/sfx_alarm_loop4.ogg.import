@@ -1,0 +1,19 @@
+[remap]
+
+importer="oggvorbisstr"
+type="AudioStreamOggVorbis"
+uid="uid://bdpe7h3slpb8k"
+path="res://.godot/imported/sfx_alarm_loop4.ogg-89148ff56e1bc7575371ca3c20a8859c.oggvorbisstr"
+
+[deps]
+
+source_file="res://Audio/SFX/General Sounds/Alarms/Alarms/sfx_alarm_loop4.ogg"
+dest_files=["res://.godot/imported/sfx_alarm_loop4.ogg-89148ff56e1bc7575371ca3c20a8859c.oggvorbisstr"]
+
+[params]
+
+loop=false
+loop_offset=0
+bpm=0
+beat_count=0
+bar_beats=4

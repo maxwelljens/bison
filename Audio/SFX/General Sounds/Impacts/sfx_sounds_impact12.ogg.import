@@ -1,0 +1,19 @@
+[remap]
+
+importer="oggvorbisstr"
+type="AudioStreamOggVorbis"
+uid="uid://dvq0gqf8lh4xr"
+path="res://.godot/imported/sfx_sounds_impact12.ogg-b51a5941a63e1f6ad0760d08c4fe5e3a.oggvorbisstr"
+
+[deps]
+
+source_file="res://Audio/SFX/General Sounds/Impacts/sfx_sounds_impact12.ogg"
+dest_files=["res://.godot/imported/sfx_sounds_impact12.ogg-b51a5941a63e1f6ad0760d08c4fe5e3a.oggvorbisstr"]
+
+[params]
+
+loop=false
+loop_offset=0
+bpm=0
+beat_count=0
+bar_beats=4

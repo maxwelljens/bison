@@ -1,0 +1,19 @@
+[remap]
+
+importer="oggvorbisstr"
+type="AudioStreamOggVorbis"
+uid="uid://4o8218ba3ulw"
+path="res://.godot/imported/sfx_sounds_Blip3.ogg-0c623bba26475e27616eb2e265fe0c41.oggvorbisstr"
+
+[deps]
+
+source_file="res://Audio/SFX/General Sounds/Simple Bleeps/sfx_sounds_Blip3.ogg"
+dest_files=["res://.godot/imported/sfx_sounds_Blip3.ogg-0c623bba26475e27616eb2e265fe0c41.oggvorbisstr"]
+
+[params]
+
+loop=false
+loop_offset=0
+bpm=0
+beat_count=0
+bar_beats=4

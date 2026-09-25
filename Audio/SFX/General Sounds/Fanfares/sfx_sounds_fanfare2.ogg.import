@@ -1,0 +1,19 @@
+[remap]
+
+importer="oggvorbisstr"
+type="AudioStreamOggVorbis"
+uid="uid://cqslhm7r5trdc"
+path="res://.godot/imported/sfx_sounds_fanfare2.ogg-1677099bf291b7f9982ffb308410d9ac.oggvorbisstr"
+
+[deps]
+
+source_file="res://Audio/SFX/General Sounds/Fanfares/sfx_sounds_fanfare2.ogg"
+dest_files=["res://.godot/imported/sfx_sounds_fanfare2.ogg-1677099bf291b7f9982ffb308410d9ac.oggvorbisstr"]
+
+[params]
+
+loop=false
+loop_offset=0
+bpm=0
+beat_count=0
+bar_beats=4

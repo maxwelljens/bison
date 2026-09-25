@@ -1,0 +1,19 @@
+[remap]
+
+importer="oggvorbisstr"
+type="AudioStreamOggVorbis"
+uid="uid://d03rs6kyo8k2a"
+path="res://.godot/imported/sfx_sounds_error7.ogg-8c915ffb0529870a5552b750f43d10dd.oggvorbisstr"
+
+[deps]
+
+source_file="res://Audio/SFX/General Sounds/Negative Sounds/sfx_sounds_error7.ogg"
+dest_files=["res://.godot/imported/sfx_sounds_error7.ogg-8c915ffb0529870a5552b750f43d10dd.oggvorbisstr"]
+
+[params]
+
+loop=false
+loop_offset=0
+bpm=0
+beat_count=0
+bar_beats=4
