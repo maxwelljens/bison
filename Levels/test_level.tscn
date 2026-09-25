@@ -4,7 +4,7 @@
 [ext_resource type="Texture2D" uid="uid://dfdk82mwfomld" path="res://Textures/Tiles/Transparent/tile_0300.png" id="2_00vsl"]
 [ext_resource type="Script" uid="uid://c8jxxghhbo3bl" path="res://Scripts/player.gd" id="3_plr"]
 [ext_resource type="Texture2D" uid="uid://mevtsv7atdv2" path="res://Textures/Tiles/Transparent/tile_0323.png" id="7_7e6fp"]
-[ext_resource type="Script" uid="uid://cfpnunbbrkytj" path="res://Scripts/pathfinding/grid_debug_draw.gd" id="8_gdbg"]
+[ext_resource type="Script" uid="uid://cfpnunbbrkytj" path="res://Scripts/pathfinding/debug/grid_debug_draw.gd" id="8_gdbg"]
 [ext_resource type="Script" uid="uid://ugjn1c2vl1hk" path="res://Scripts/pathfinding/platformer_pathfinder.gd" id="9_pfind"]
 [ext_resource type="Script" uid="uid://hc5lckqo0t2b" path="res://Scripts/bot/platformer_bot.gd" id="10_bot"]
 [ext_resource type="Script" uid="uid://cxjgfjpp5e2ir" path="res://Scripts/bot/bot_path_follower.gd" id="11_folw"]
@@ -596,8 +596,6 @@ z_index = 95
 script = ExtResource("9_pfind")
 tilemap = NodePath("../TileMapLayer")
 preview_to = Vector2(136, 56)
-preview_jump_velocity = null
-preview_move_speed = null
 
 [node name="Bot" type="CharacterBody2D" parent="." unique_id=1308628875 node_paths=PackedStringArray("sprite")]
 position = Vector2(-152, 8)
