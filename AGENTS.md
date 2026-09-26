@@ -26,7 +26,8 @@ Read this before touching anything.
 - `Scenes/` — reusable scenes: `player.tscn` (Player root: state-machine
   children, `AnimatedSprite2D`, collision, camera).
 - `Scripts/` — GDScript sources: `Player/` (`player.gd`, `player_state.gd`,
-  `grounded.gd`, `airborne.gd`, `player_animator.gd`); `Pathfinding/`
+  `grounded.gd`, `airborne.gd`, `player_animator.gd`,
+  `player_sfx.gd`); `Pathfinding/`
   (`platformer_grid.gd`, `jump_profile.gd`, `path_data.gd`,
   `path_waypoint.gd`, `platformer_pathfinder.gd`,
   `debug/grid_debug_draw.gd`); `Bot/`
@@ -42,9 +43,10 @@ Read this before touching anything.
 	collision_layer 1 (the player's default collision mask matches it).
   - `Player` (instance of `Scenes/player.tscn`) with children:
     `StateMachine` (holds the `Grounded`/`Airborne` state nodes),
-    `Animator`, `AnimatedSprite2D` (SpriteFrames: idle/jump/run/stop),
-    `CollisionShape2D` (RectangleShape2D 12×11 at (0, 2.5)), and `Camera2D`
-    (follows the player for free by being a child).
+    `Animator`, `Sfx`, `AnimatedSprite2D` (SpriteFrames:
+    idle/jump/run/stop), `CollisionShape2D` (RectangleShape2D 12×11 at
+    (0, 2.5)), and `Camera2D` (follows the player for free by being a
+    child).
 - `Scripts/Player/` — player-driven two-state machine: the player gathers
   input once per frame, the current state (`grounded.gd` / `airborne.gd`)
   runs the frame's physics and ends with `move_and_slide()`, transitions
@@ -53,6 +55,18 @@ Read this before touching anything.
   inside it), and states emit animation intents (IDLE/RUN/STOP/AIR) that
   `player_animator.gd` maps onto the SpriteFrames. `player_state.gd` is
   the base class (`setup`/`enter`/`exit`/`physics_process`).
+- Sound effects: `player_sfx.gd` (`PlayerSfx`) sits under the player
+  like the Animator and never touches audio from the states. The player
+  forwards the state intent (`set_intent`), floor state (`set_grounded`)
+  and events: Grounded sets `player.jumped_this_frame` at jump launch
+  (the player plays JUMP and clears it), and the player plays LAND on
+  the Airborne→Grounded transition. Footsteps tick while RUN + grounded
+  (fixed `footstep_interval`); STOP plays on its one-frame intent edge.
+  Sounds play through a code-created round-robin pool of
+  `voice_count` `AudioStreamPlayer`s (overlaps never cut). New events
+  scale by adding an Event entry, an `@export` stream and a match arm in
+  `_stream_for`. `sound_stop` ships unassigned (no skid asset in the
+  Kenney pack); unassigned streams silently skip their event.
 - Input map (`project.godot`): `move_left` (A/←), `move_right` (D/→),
   `jump` (Space/W/↑). Keyboard only, no gamepad bindings.
 - Scene-level tuning overrides on the Player node (user-tuned in the
@@ -207,8 +221,9 @@ Verified facts about Godot 4.7.x as used in this project (probed 2026-09-25).
 Script defaults (`Scripts/Player/player.gd`; `coyote_time`,
 `jump_buffer_time` and `run_min_speed` live on `PlayerGrounded` in
 `Scripts/Player/grounded.gd`, `stop_hold_time` on
-`Scripts/Player/player_animator.gd`); scene overrides on the Player node
-take precedence.
+`Scripts/Player/player_animator.gd`, `voice_count`, `footstep_interval`
+and `volume_db` on `Scripts/Player/player_sfx.gd`); scene overrides on
+the Player node take precedence.
 
 | Property | Default | Meaning |
 |---|---|---|
@@ -222,3 +237,6 @@ take precedence.
 | `max_fall_speed` | 600.0 px/s | terminal velocity clamp |
 | `run_min_speed` (`PlayerGrounded`) | 10.0 px/s | releasing move input at/above this speed shows the stop animation |
 | `stop_hold_time` (`PlayerAnimator`) | 0.2 s | how long the stop one-shot holds before idle resumes |
+| `footstep_interval` (`PlayerSfx`) | 0.3 s | seconds between footsteps while running |
+| `voice_count` (`PlayerSfx`) | 4 | pooled voices; oldest is reused beyond this many overlapping sounds |
+| `volume_db` (`PlayerSfx`) | 0.0 dB | volume applied to every SFX voice |

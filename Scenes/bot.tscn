@@ -1,0 +1,33 @@
+[gd_scene format=3 uid="uid://c5nqvi1g3p55l"]
+
+[ext_resource type="Script" uid="uid://hc5lckqo0t2b" path="res://Scripts/Bot/platformer_bot.gd" id="1_gdc2h"]
+[ext_resource type="Texture2D" uid="uid://mevtsv7atdv2" path="res://Textures/Tiles/Transparent/tile_0323.png" id="2_dl46b"]
+[ext_resource type="Script" uid="uid://cxjgfjpp5e2ir" path="res://Scripts/Bot/bot_path_follower.gd" id="3_ctndb"]
+[ext_resource type="Script" uid="uid://ugjn1c2vl1hk" path="res://Scripts/Pathfinding/platformer_pathfinder.gd" id="4_6div5"]
+
+[sub_resource type="RectangleShape2D" id="RectangleShape2D_bot"]
+size = Vector2(10, 11)
+
+[node name="Bot" type="CharacterBody2D" unique_id=181996794 node_paths=PackedStringArray("sprite")]
+script = ExtResource("1_gdc2h")
+jump_velocity = -180.0
+jump_release_speed = 20.0
+sprite = NodePath("Sprite2D")
+
+[node name="Sprite2D" type="Sprite2D" parent="." unique_id=423349199]
+texture = ExtResource("2_dl46b")
+
+[node name="CollisionShape2D" type="CollisionShape2D" parent="." unique_id=1469685057]
+position = Vector2(0, 2.5)
+shape = SubResource("RectangleShape2D_bot")
+
+[node name="BotPathFollower" type="Node" parent="." unique_id=79685940 node_paths=PackedStringArray("bot", "pathfinder")]
+script = ExtResource("3_ctndb")
+bot = NodePath("..")
+pathfinder = NodePath("../Pathfinder")
+
+[node name="Pathfinder" type="Node2D" parent="." unique_id=20875867 node_paths=PackedStringArray("tilemap")]
+z_index = 95
+position = Vector2(152, -8)
+script = ExtResource("4_6div5")
+tilemap = NodePath("")

@@ -46,6 +46,7 @@ func physics_process(delta: float) -> void:
 		player.velocity.y = player.jump_velocity
 		player.jump_buffer_timer = 0.0
 		_coyote_timer = 0.0
+		player.jumped_this_frame = true
 
 	# Variable jump height: early release while rising scales velocity down
 	# instead of stopping, so a tap gives a short hop. The launch frame's

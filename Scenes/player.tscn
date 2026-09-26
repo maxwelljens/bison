@@ -9,6 +9,7 @@
 [ext_resource type="Texture2D" uid="uid://cypmc6s2tnvgb" path="res://Textures/Tiles/Transparent/tile_0262.png" id="6_3smsa"]
 [ext_resource type="Script" uid="uid://dgtal68t3sp8v" path="res://Scripts/Player/airborne.gd" id="6_airb"]
 [ext_resource type="Script" uid="uid://cd4igwjdq8us3" path="res://Scripts/Player/player_animator.gd" id="7_anim"]
+[ext_resource type="Script" uid="uid://bfuv25bku7c48" path="res://Scripts/Player/player_sfx.gd" id="8_sfx"]
 
 [sub_resource type="SpriteFrames" id="SpriteFrames_fmu24"]
 animations = [{
@@ -51,13 +52,14 @@ animations = [{
 [sub_resource type="RectangleShape2D" id="RectangleShape2D_fmu24"]
 size = Vector2(12, 11)
 
-[node name="Player" type="CharacterBody2D" unique_id=244470271 node_paths=PackedStringArray("state_grounded", "state_airborne", "animator")]
+[node name="Player" type="CharacterBody2D" unique_id=244470271 node_paths=PackedStringArray("state_grounded", "state_airborne", "animator", "sfx")]
 script = ExtResource("1_cvnsp")
 move_speed = 50.0
 jump_velocity = -150.0
 state_grounded = NodePath("StateMachine/Grounded")
 state_airborne = NodePath("StateMachine/Airborne")
 animator = NodePath("Animator")
+sfx = NodePath("Sfx")
 
 [node name="StateMachine" type="Node" parent="." unique_id=34548043]
 
@@ -71,9 +73,13 @@ script = ExtResource("6_airb")
 script = ExtResource("7_anim")
 sprite = NodePath("../AnimatedSprite2D")
 
-[node name="AudioStreamPlayer" type="AudioStreamPlayer" parent="." unique_id=1070832029]
+[node name="Sfx" type="Node" parent="." unique_id=1664568463]
+script = ExtResource("8_sfx")
+footstep_interval = 0.2
+volume_db = -10.0
 
 [node name="AnimatedSprite2D" type="AnimatedSprite2D" parent="." unique_id=1544279097]
+modulate = Color(0.72156864, 0.73333335, 0.14901961, 1)
 sprite_frames = SubResource("SpriteFrames_fmu24")
 animation = &"idle"
 autoplay = "idle"

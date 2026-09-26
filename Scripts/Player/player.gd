@@ -35,11 +35,16 @@ extends CharacterBody2D
 @export var state_airborne: PlayerAirborne
 ## Maps state intents to SpriteFrames animations and owns facing.
 @export var animator: PlayerAnimator
+## Plays sound effects for jump, land, footstep and stop events.
+@export var sfx: PlayerSfx
 
 ## Horizontal input axis, -1..1; refreshed every physics frame.
 var input_direction: float = 0.0
 ## Jump release edge for this frame; states apply the jump cut from it.
 var jump_just_released: bool = false
+## Set by a state when a jump launches this frame; the player consumes
+## it (playing the jump sound) and clears it every frame.
+var jumped_this_frame: bool = false
 ## Seconds a buffered jump press remains actionable. Ticked every frame in
 ## both states so a press just before touchdown survives the fall.
 var jump_buffer_timer: float = 0.0
@@ -78,11 +83,15 @@ func _physics_process(delta: float) -> void:
 	# 3. The current state runs this frame's physics and ends with
 	# move_and_slide().
 	_current.physics_process(delta)
+	if jumped_this_frame:
+		sfx.play(PlayerSfx.Event.JUMP)
+		jumped_this_frame = false
 
 	# 4. Transitions, evaluated on the floor state move_and_slide just
 	# produced. Grounded persists through the coyote window after a
 	# walk-off, so jump launching stays inside it.
 	if _current == state_airborne and is_on_floor():
+		sfx.play(PlayerSfx.Event.LAND)
 		_transition(state_grounded)
 	elif _current == state_grounded and not is_on_floor() \
 			and not state_grounded.coyote_active():
@@ -92,6 +101,8 @@ func _physics_process(delta: float) -> void:
 	if input_direction != 0.0:
 		animator.set_facing(input_direction)
 	animator.set_intent(_current.intent)
+	sfx.set_intent(_current.intent)
+	sfx.set_grounded(is_on_floor())
 
 
 func _transition(next: PlayerState) -> void:
