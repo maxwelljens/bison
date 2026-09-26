@@ -24,7 +24,8 @@ Read this before touching anything.
 - `project.godot` — engine config and input map.
 - `Levels/` — level scenes. `test_level.tscn` is the main scene.
 - `Scenes/` — reusable scenes: `player.tscn` (Player root: state-machine
-  children, `AnimatedSprite2D`, collision, camera).
+  children, `AnimatedSprite2D`, collision, camera) and `bot.tscn`
+  (Bot root: `Sprite2D`, collision, `BotPathFollower`, `Pathfinder`).
 - `Scripts/` — GDScript sources: `Player/` (`player.gd`, `player_state.gd`,
   `grounded.gd`, `airborne.gd`, `player_animator.gd`,
   `player_sfx.gd`); `Pathfinding/`
@@ -105,6 +106,15 @@ Read this before touching anything.
   +10% margin) and the bot fires it as a one-shot impulse, so gaps get
   hops proportional to their width. Targets not on the descent side of any
   single-impulse arc (high nearby ledges) keep the classic full jump.
+  The Pathfinder's map comes through the `navigation` group: the active
+  TileMapLayer joins it (see `test_level.tscn`'s `Map/Foreground`) and the
+  Pathfinder auto-resolves it on its first `_process` tick when `tilemap`
+  was not assigned explicitly — strict validation warns when the group
+  holds anything other than exactly one TileMapLayer, and reassignments
+  via the `tilemap` setter invalidate the baked grid and refresh the
+  preview. `Levels/test_level.tscn` itself needs no Bot wiring; dropping
+  `bot.tscn` into any level works if that level tags exactly one
+  TileMapLayer with the group.
   Awaiting re-verification.
 - Known gaps (intentionally out of scope so far): no camera limits, no
   UI/health/death, only the Grounded/Airborne states exist so far (no

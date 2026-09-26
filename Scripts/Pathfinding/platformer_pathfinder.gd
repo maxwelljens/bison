@@ -74,7 +74,15 @@ const DIRECTIONS := [Vector2i.LEFT, Vector2i.RIGHT, Vector2i.UP, Vector2i.DOWN]
 const INVALID_CELL := Vector2i(-1, -1)
 
 ## TileMapLayer the search grid is baked from.
-@export var tilemap: TileMapLayer
+@export var tilemap: TileMapLayer:
+	set(value):
+		tilemap = value
+		_grid = null
+		_run_preview_if_ready()
+
+## TileMapLayer group used to auto-resolve the baked map when no explicit
+## [member tilemap] was assigned.
+const MAP_GROUP := "navigation"
 
 @export_category("Search")
 ## Extra edge cost per jump-value unit; punishes staying high and airborne.
@@ -154,7 +162,32 @@ func _ready() -> void:
 func _process(_delta: float) -> void:
 	if _preview_pending:
 		_preview_pending = false
+		_resolve_tilemap()
 		_run_preview_if_ready()
+
+
+## Picks the tilemap to bake the grid from when none was assigned explicitly.
+## The trusted one-shot _process path calls this after readiness; strict
+## validation weeds out misconfigured levels by warning on any group count
+## other than exactly one TileMapLayer.
+func _resolve_tilemap() -> void:
+	if tilemap != null:
+		return
+	var candidates: Array[Node] = get_tree().get_nodes_in_group(MAP_GROUP)
+	var maps: Array[TileMapLayer] = []
+	for candidate in candidates:
+		if candidate is TileMapLayer:
+			maps.append(candidate)
+	match maps.size():
+		0:
+			push_warning("PlatformerPathfinder: no TileMapLayer in the '%s' group" % MAP_GROUP)
+		1:
+			tilemap = maps[0]
+		_:
+			push_warning(
+				"PlatformerPathfinder: %d TileMapLayers in the '%s' group, using the first (tree order)"
+					% [maps.size(), MAP_GROUP])
+			tilemap = maps[0]
 
 
 ## Tile width in px; falls back to 16 when no tileset is assigned.

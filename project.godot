@@ -29,6 +29,10 @@ window/stretch/aspect="keep_width"
 
 enabled=PackedStringArray("res://addons/at-icons/plugin.cfg")
 
+[global_group]
+
+navigation=""
+
 [input]
 
 move_left={

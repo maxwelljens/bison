@@ -26,8 +26,7 @@ script = ExtResource("3_ctndb")
 bot = NodePath("..")
 pathfinder = NodePath("../Pathfinder")
 
-[node name="Pathfinder" type="Node2D" parent="." unique_id=20875867 node_paths=PackedStringArray("tilemap")]
+[node name="Pathfinder" type="Node2D" parent="." unique_id=20875867]
 z_index = 95
 position = Vector2(152, -8)
 script = ExtResource("4_6div5")
-tilemap = NodePath("")
