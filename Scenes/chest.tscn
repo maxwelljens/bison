@@ -1,0 +1,37 @@
+[gd_scene format=3 uid="uid://beomhqbeouj18"]
+
+[ext_resource type="Script" uid="uid://c28g13ob3w24" path="res://Scripts/Chest/chest.gd" id="1_chst"]
+[ext_resource type="Texture2D" uid="uid://djr265pbtcljk" path="res://Textures/Tiles/Transparent/tile_0389.png" id="2_chst"]
+[ext_resource type="Script" uid="uid://dcccwywe6us2c" path="res://Scripts/Chest/chest_sfx.gd" id="3_chst"]
+[ext_resource type="Texture2D" uid="uid://ci7ajrw4a3bao" path="res://Textures/Tiles/Transparent/tile_0390.png" id="3_dq33m"]
+[ext_resource type="Script" uid="uid://clm0o3mctflys" path="res://Scripts/Chest/chest_vfx.gd" id="4_chst"]
+
+[sub_resource type="RectangleShape2D" id="RectangleShape2D_chest"]
+size = Vector2(24, 20)
+
+[node name="Chest" type="Node2D" unique_id=455512233 node_paths=PackedStringArray("sprite", "trigger", "sfx", "vfx")]
+z_index = -1
+script = ExtResource("1_chst")
+sprite = NodePath("Sprite2D")
+trigger = NodePath("Trigger")
+sfx = NodePath("Sfx")
+vfx = NodePath("Vfx")
+texture_closed = ExtResource("2_chst")
+texture_open = ExtResource("3_dq33m")
+
+[node name="Sprite2D" type="Sprite2D" parent="." unique_id=397494199]
+texture = ExtResource("2_chst")
+
+[node name="Trigger" type="Area2D" parent="." unique_id=1547384217]
+position = Vector2(0, 2)
+collision_layer = 0
+
+[node name="CollisionShape2D" type="CollisionShape2D" parent="Trigger" unique_id=984669335]
+shape = SubResource("RectangleShape2D_chest")
+
+[node name="Sfx" type="Node" parent="." unique_id=1439441858]
+script = ExtResource("3_chst")
+
+[node name="Vfx" type="CPUParticles2D" parent="." unique_id=1571135042 node_paths=PackedStringArray("sprite")]
+script = ExtResource("4_chst")
+sprite = NodePath("../Sprite2D")

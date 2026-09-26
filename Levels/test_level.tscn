@@ -1,19 +1,41 @@
 [gd_scene format=4 uid="uid://w7sf4628kqjm"]
 
+[ext_resource type="Material" uid="uid://b58hmfqvhrknn" path="res://Shaders/crt.tres" id="1_3158n"]
 [ext_resource type="TileSet" uid="uid://bac1b5al6grbt" path="res://Resources/bg_tileset.tres" id="1_i4ak4"]
 [ext_resource type="TileSet" uid="uid://dovecwwpkmnqc" path="res://Resources/fg_tileset.tres" id="2_3158n"]
 [ext_resource type="PackedScene" uid="uid://g2bnsf747asl" path="res://Scenes/player.tscn" id="2_ub4j8"]
 [ext_resource type="PackedScene" uid="uid://c5nqvi1g3p55l" path="res://Scenes/bot.tscn" id="3_4k50d"]
+[ext_resource type="PackedScene" path="res://Scenes/chest.tscn" id="7_ub4j8"]
 
 [node name="TestLevel" type="Node2D" unique_id=277619520]
+
+[node name="Shader" type="CanvasLayer" parent="." unique_id=51396446]
+
+[node name="CRTShader" type="ColorRect" parent="Shader" unique_id=1760162168]
+z_index = -4096
+material = ExtResource("1_3158n")
+offset_right = 2046.0
+offset_bottom = 2046.0
+mouse_filter = 2
+
+[node name="Background" type="CanvasLayer" parent="." unique_id=664191471]
+layer = -1
+
+[node name="BackgroundColour" type="ColorRect" parent="Background" unique_id=480684130]
+offset_right = 2046.0
+offset_bottom = 2046.0
+mouse_filter = 2
+color = Color(0.11372549, 0.1254902, 0.12941177, 1)
 
 [node name="Map" type="Node" parent="." unique_id=848608864]
 
 [node name="Parallax2D" type="Parallax2D" parent="Map" unique_id=924187982]
+modulate = Color(1, 1, 1, 0.49019608)
 scroll_scale = Vector2(0.5, 0.5)
 
 [node name="ParallaxBackground" type="TileMapLayer" parent="Map/Parallax2D" unique_id=1954014102]
 z_index = -1000
+tile_map_data = PackedByteArray("AADz/w4AAQALAA4AAADz/w0AAQALAA4AAADz/wwAAQALAA4AAADz/wsAAQALAA4AAADz/woAAQALAA4AAADz/wkAAQALAA4AAADz/w8AAQALAA4AAAD1/w4AAQALAA4AAAD1/w0AAQALAA4AAAD1/wwAAQALAA4AAAD1/wsAAQALAA4AAAD1/woAAQALAA4AAAD1/wkAAQALAA4AAAD0/w4AAQALAA4AAAD0/w0AAQALAA4AAAD0/wwAAQALAA4AAAD0/wsAAQALAA4AAAD0/woAAQALAA4AAAD0/wkAAQALAA4AAADz/wgAAQALAA4AAAD1/w8AAQALAA4AAAD1/wgAAQALAA4AAAD0/w8AAQALAA4AAAD0/wgAAQALAA4AAADy/w8AAQALAA4AAADy/w4AAQALAA4AAADy/w0AAQALAA4AAADy/wwAAQALAA4AAADy/wsAAQALAA4AAADy/woAAQALAA4AAADy/wkAAQALAA4AAADy/wgAAQALAA4AAADy/wcAAQALAA4AAADy/xAAAQALAAcAAADr/w4AAQALAA4AAADr/w0AAQALAA4AAADr/wwAAQALAA4AAADq/w4AAQALAA4AAADq/w0AAQALAA4AAADq/wwAAQALAA4AAADp/w4AAQALAA4AAADp/w0AAQALAA4AAADp/wwAAQALAA4AAADp/wsAAQALAA4AAADp/w8AAQALAA4AAADr/w8AAQALAA4AAADr/wsAAQALAA4AAADq/w8AAQALAA4AAADq/wsAAQALAA4AAADo/wwAAQAKAAYAAADo/wsAAQAKAAYAAADo/woAAQAKAAUAAADp/woAAQALAAUAAADq/woAAQALAAUAAADo/w0AAQAKAAYAAADo/w4AAQAKAAYAAADo/w8AAQAKAAYAAADq/xAAAQALAAcAAADp/xAAAQALAAcAAADo/xAAAQAKAAcAAADr/woAAQALAAUAAADr/xAAAQALAAcAAADs/wsAAQAMAAYAAADs/wwAAQAMAAYAAADs/woAAQAMAAUAAADs/w0AAQAMAAYAAADs/w4AAQAMAAYAAADs/w8AAQAMAAYAAADs/xAAAQAMAAcAAAD1/wcAAQALAA4AAAD0/wcAAQALAA4AAADz/wcAAQALAA4AAADx/wgAAQAKAAYAAADx/wcAAQAKAAYAAADx/wYAAQAKAAUAAADy/wYAAQALAAUAAADz/wYAAQALAAUAAADx/wkAAQAKAAYAAADx/woAAQAKAAYAAADx/wsAAQAKAAYAAADx/wwAAQAKAAYAAADx/w0AAQAKAAYAAADx/w4AAQAKAAYAAADx/w8AAQAKAAYAAADz/xAAAQALAAcAAADx/xAAAQAKAAcAAAD0/wYAAQALAAUAAAD0/xAAAQALAAcAAAD1/wYAAQALAAUAAAD1/xAAAQALAAcAAAD2/wcAAQAMAAYAAAD2/wgAAQAMAAYAAAD2/wYAAQAMAAUAAAD2/wkAAQAMAAYAAAD2/woAAQAMAAYAAAD2/wsAAQAMAAYAAAD2/wwAAQAMAAYAAAD2/w0AAQAMAAYAAAD2/w4AAQAMAAYAAAD2/w8AAQAMAAYAAAD2/xAAAQAMAAcAAAA=")
 tile_set = ExtResource("1_i4ak4")
 
 [node name="Foreground" type="TileMapLayer" parent="Map" unique_id=1656963265 groups=["navigation"]]
@@ -24,3 +46,7 @@ tile_set = ExtResource("2_3158n")
 
 [node name="Bot" parent="." unique_id=181996794 instance=ExtResource("3_4k50d")]
 position = Vector2(-152, 8)
+move_speed = 65.0
+
+[node name="Chest" parent="." unique_id=348243419 instance=ExtResource("7_ub4j8")]
+position = Vector2(-32, 8)

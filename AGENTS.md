@@ -24,15 +24,17 @@ Read this before touching anything.
 - `project.godot` — engine config and input map.
 - `Levels/` — level scenes. `test_level.tscn` is the main scene.
 - `Scenes/` — reusable scenes: `player.tscn` (Player root: state-machine
-  children, `AnimatedSprite2D`, collision, camera) and `bot.tscn`
-  (Bot root: `Sprite2D`, collision, `BotPathFollower`, `Pathfinder`).
+  children, `AnimatedSprite2D`, collision, camera), `bot.tscn`
+  (Bot root: `Sprite2D`, collision, `BotPathFollower`, `Pathfinder`) and
+  `chest.tscn` (Chest root: `Sprite2D`, `Trigger` Area2D, `Sfx`, `Vfx`).
 - `Scripts/` — GDScript sources: `Player/` (`player.gd`, `player_state.gd`,
   `grounded.gd`, `airborne.gd`, `player_animator.gd`,
   `player_sfx.gd`); `Pathfinding/`
   (`platformer_grid.gd`, `jump_profile.gd`, `path_data.gd`,
   `path_waypoint.gd`, `platformer_pathfinder.gd`,
   `debug/grid_debug_draw.gd`); `Bot/`
-  (`platformer_bot.gd`, `bot_path_follower.gd`).
+  (`platformer_bot.gd`, `bot_path_follower.gd`); `Chest/`
+  (`chest.gd`, `chest_sfx.gd`, `chest_vfx.gd`).
 - `Textures/` — art: `Tilemap/` (tileset textures), `Tiles/Default` and
   `Tiles/Transparent` (individual tiles), `Sample.png`.
 - `AGENTS.md` — this file.
@@ -42,6 +44,17 @@ Read this before touching anything.
 - `Levels/test_level.tscn` — `TestLevel` (Node2D) contains:
   - `TileMapLayer` — tile data plus a `TileSet` with a physics layer on
 	collision_layer 1 (the player's default collision mask matches it).
+  - `Chest` (instance of `Scenes/chest.tscn`) — interactive loot chest:
+	stand in its `Trigger` Area2D and press the `interact` action (E) to
+	open. Opening swaps the sprite texture, plays a `ChestSfx` event,
+	fires a `ChestVfx` particle/flash burst and emits `Chest.opened`.
+	The chest stays open visually and remains interactable — every
+	in-range press re-emits `opened` (the loot/inventory increment will
+	hook the signal). The trigger counts only `CharacterBody2D` overlaps
+	so static tile collision never fakes proximity. Feedback components
+	degrade silently when unassigned (no art/sound/refs = no errors).
+	`texture_open` ships unassigned (open-chest art pending); texture
+	slot defaults keep the sprite's own texture until assigned.
   - `Player` (instance of `Scenes/player.tscn`) with children:
     `StateMachine` (holds the `Grounded`/`Airborne` state nodes),
     `Animator`, `Sfx`, `AnimatedSprite2D` (SpriteFrames:

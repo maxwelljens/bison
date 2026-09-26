@@ -8,6 +8,7 @@
 [ext_resource type="Script" uid="uid://ce326hekkms6n" path="res://Scripts/Player/grounded.gd" id="5_grnd"]
 [ext_resource type="Texture2D" uid="uid://cypmc6s2tnvgb" path="res://Textures/Tiles/Transparent/tile_0262.png" id="6_3smsa"]
 [ext_resource type="Script" uid="uid://dgtal68t3sp8v" path="res://Scripts/Player/airborne.gd" id="6_airb"]
+[ext_resource type="Material" uid="uid://c28vjeawc5x80" path="res://Shaders/outline.tres" id="6_gymyn"]
 [ext_resource type="Script" uid="uid://cd4igwjdq8us3" path="res://Scripts/Player/player_animator.gd" id="7_anim"]
 [ext_resource type="Script" uid="uid://bfuv25bku7c48" path="res://Scripts/Player/player_sfx.gd" id="8_sfx"]
 
@@ -55,6 +56,8 @@ size = Vector2(12, 11)
 [node name="Player" type="CharacterBody2D" unique_id=244470271 node_paths=PackedStringArray("state_grounded", "state_airborne", "animator", "sfx")]
 script = ExtResource("1_cvnsp")
 move_speed = 50.0
+acceleration = 500.0
+friction = 150.0
 jump_velocity = -150.0
 state_grounded = NodePath("StateMachine/Grounded")
 state_airborne = NodePath("StateMachine/Airborne")
@@ -80,6 +83,7 @@ volume_db = -10.0
 
 [node name="AnimatedSprite2D" type="AnimatedSprite2D" parent="." unique_id=1544279097]
 modulate = Color(0.72156864, 0.73333335, 0.14901961, 1)
+material = ExtResource("6_gymyn")
 sprite_frames = SubResource("SpriteFrames_fmu24")
 animation = &"idle"
 autoplay = "idle"
@@ -90,3 +94,11 @@ shape = SubResource("RectangleShape2D_fmu24")
 debug_color = Color(0, 0.640254, 0.35733178, 0.41960785)
 
 [node name="Camera2D" type="Camera2D" parent="." unique_id=1759240348]
+zoom = Vector2(1.25, 1.25)
+position_smoothing_enabled = true
+drag_horizontal_enabled = true
+drag_vertical_enabled = true
+drag_left_margin = 0.01
+drag_top_margin = 0.01
+drag_right_margin = 0.01
+drag_bottom_margin = 0.01

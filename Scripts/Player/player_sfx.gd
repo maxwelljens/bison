@@ -34,10 +34,7 @@ enum Event {
 ## Played on touchdown; pairs with [member sound_jump].
 @export var sound_land: AudioStream = preload("res://Audio/SFX/Movement/Jumping and Landing/sfx_movement_jump13_landing.ogg")
 ## Footstep sounds, cycled in order per step.
-@export var sound_footsteps: Array[AudioStream] = [
-	preload("res://Audio/SFX/Movement/Footsteps/sfx_movement_footsteps1a.ogg"),
-	preload("res://Audio/SFX/Movement/Footsteps/sfx_movement_footsteps1b.ogg"),
-]
+@export var sound_footsteps: Array[AudioStream]
 ## Played once per stop (unassigned by default: the pack has no skid
 ## sound yet; assign one in the Inspector or leave empty for silence).
 @export var sound_stop: AudioStream = preload("/media/Development/bison/Audio/SFX/Movement/Footsteps/sfx_movement_footstepsloop4_slow.ogg")
