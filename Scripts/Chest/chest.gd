@@ -16,7 +16,6 @@ extends Node2D
 ## loot UI will consume. All feedback components degrade silently when
 ## their references are unassigned, so a bare chest in a test level
 ## never errors.
-
 ## Visual: swapped from the closed texture on open.
 @export var sprite: Sprite2D
 ## Trigger area whose overlap state gates the interact action.
@@ -25,6 +24,8 @@ extends Node2D
 @export var sfx: ChestSfx
 ## One-shot open burst.
 @export var vfx: ChestVfx
+## Interact prompt laid out in the scene; faded in/out by the chest.
+@export var prompt: ChestPrompt
 
 @export_category("Appearance")
 ## Shown while closed; falls back to the sprite's own texture when
@@ -40,10 +41,10 @@ extends Node2D
 	set(value):
 		trigger_size = value
 		_apply_trigger_size()
-## Whether the interact prompt (created in code) is shown at all.
-@export var prompt_enabled: bool = true
-## Text of the interact prompt.
-@export var prompt_text: String = "E"
+
+@export_category("Prompt")
+## Fade duration for the prompt's show/hide, in s.
+@export_range(0.0, 1.0, 0.01, "suffix:s") var prompt_fade: float = 0.15
 
 ## Fired on every in-range interact press while open or closed; the
 ## loot increment decides what each press yields.
@@ -53,16 +54,12 @@ signal opened
 var _in_range: bool = false
 # One-time open state; re-presses still re-emit [signal opened].
 var _is_open: bool = false
-# Code-created floating prompt; hidden until the trigger fires.
-var _prompt: Label
-# Fade duration for the prompt's show/hide.
-var _prompt_fade: float = 0.15
 
 
 func _ready() -> void:
 	_apply_closed_texture()
 	_apply_trigger_size()
-	_create_prompt()
+	_apply_prompt_hidden()
 	if trigger != null:
 		trigger.body_entered.connect(_on_body_entered)
 		trigger.body_exited.connect(_on_body_exited)
@@ -84,6 +81,7 @@ func open() -> void:
 	_is_open = true
 	if sprite != null and texture_open != null:
 		sprite.texture = texture_open
+	_set_prompt_loot_text()
 	if sfx != null:
 		sfx.play(ChestSfx.Event.OPEN)
 	if vfx != null:
@@ -123,27 +121,34 @@ func _apply_trigger_size() -> void:
 	shape.size = trigger_size
 
 
-## Builds the floating "E" label above the chest, hidden by default.
-func _create_prompt() -> void:
-	if not prompt_enabled:
+## Switches the prompt description to the loot phase, fired when the
+## chest physically opens.
+func _set_prompt_loot_text() -> void:
+	if prompt == null:
 		return
-	_prompt = Label.new()
-	_prompt.text = prompt_text
-	_prompt.z_index = 96
-	_prompt.position = Vector2(-4.0, -18.0)
-	_prompt.modulate.a = 0.0
-	add_child(_prompt)
+	prompt.set_text("INFO_LOOT")
+
+
+## Starts the prompt fully faded out so it is invisible until the
+## trigger fires.
+func _apply_prompt_hidden() -> void:
+	if prompt == null:
+		return
+	prompt.modulate.a = 0.0
+	prompt.visible = false
 
 
 func _show_prompt() -> void:
-	if _prompt == null:
+	if prompt == null:
 		return
+	prompt.visible = true
 	var tween := create_tween()
-	tween.tween_property(_prompt, "modulate:a", 1.0, _prompt_fade)
+	tween.tween_property(prompt, "modulate:a", 1.0, prompt_fade)
 
 
 func _hide_prompt() -> void:
-	if _prompt == null:
+	if prompt == null:
 		return
 	var tween := create_tween()
-	tween.tween_property(_prompt, "modulate:a", 0.0, _prompt_fade)
+	tween.tween_property(prompt, "modulate:a", 0.0, prompt_fade)
+	tween.tween_callback(prompt.hide)

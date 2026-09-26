@@ -5,19 +5,61 @@
 [ext_resource type="Script" uid="uid://dcccwywe6us2c" path="res://Scripts/Chest/chest_sfx.gd" id="3_chst"]
 [ext_resource type="Texture2D" uid="uid://ci7ajrw4a3bao" path="res://Textures/Tiles/Transparent/tile_0390.png" id="3_dq33m"]
 [ext_resource type="Script" uid="uid://clm0o3mctflys" path="res://Scripts/Chest/chest_vfx.gd" id="4_chst"]
+[ext_resource type="FontFile" uid="uid://d15lahxggl4k3" path="res://Fonts/IosevkaCharonMono-Bold.ttf" id="6_25pds"]
+[ext_resource type="FontFile" uid="uid://c7jgfu00fb2bi" path="res://Fonts/IosevkaCharonMono-Regular.ttf" id="7_uovm1"]
+[ext_resource type="Script" uid="uid://xe53gbrlv6a" path="res://Scripts/Chest/chest_prompt.gd" id="8_prm"]
+
+[sub_resource type="LabelSettings" id="LabelSettings_fmu24"]
+font = ExtResource("6_25pds")
+font_size = 8
+font_color = Color(0.99607843, 0.5019608, 0.09803922, 1)
+outline_size = 4
+outline_color = Color(0.11372549, 0.1254902, 0.12941177, 1)
+
+[sub_resource type="LabelSettings" id="LabelSettings_mrmno"]
+font = ExtResource("7_uovm1")
+font_size = 8
+font_color = Color(0.92156863, 0.85882354, 0.69803923, 1)
+outline_size = 4
+outline_color = Color(0.11372549, 0.1254902, 0.12941177, 1)
 
 [sub_resource type="RectangleShape2D" id="RectangleShape2D_chest"]
 size = Vector2(24, 20)
 
-[node name="Chest" type="Node2D" unique_id=455512233 node_paths=PackedStringArray("sprite", "trigger", "sfx", "vfx")]
+[node name="Chest" type="Node2D" unique_id=455512233 node_paths=PackedStringArray("sprite", "trigger", "sfx", "vfx", "prompt")]
 z_index = -1
 script = ExtResource("1_chst")
 sprite = NodePath("Sprite2D")
 trigger = NodePath("Trigger")
 sfx = NodePath("Sfx")
 vfx = NodePath("Vfx")
+prompt = NodePath("Prompt")
 texture_closed = ExtResource("2_chst")
 texture_open = ExtResource("3_dq33m")
+
+[node name="Prompt" type="HBoxContainer" parent="." unique_id=16887894 node_paths=PackedStringArray("text_label")]
+anchors_preset = 15
+anchor_right = 1.0
+anchor_bottom = 1.0
+offset_left = -48.0
+offset_top = -24.0
+offset_right = 48.0
+offset_bottom = -8.0
+grow_horizontal = 2
+grow_vertical = 2
+alignment = 1
+script = ExtResource("8_prm")
+text_label = NodePath("Text")
+
+[node name="Key" type="Label" parent="Prompt" unique_id=230814360]
+layout_mode = 2
+text = "E"
+label_settings = SubResource("LabelSettings_fmu24")
+
+[node name="Text" type="Label" parent="Prompt" unique_id=553788336]
+layout_mode = 2
+text = "INFO_OPEN"
+label_settings = SubResource("LabelSettings_mrmno")
 
 [node name="Sprite2D" type="Sprite2D" parent="." unique_id=397494199]
 texture = ExtResource("2_chst")
