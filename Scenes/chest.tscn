@@ -8,28 +8,17 @@
 [ext_resource type="FontFile" uid="uid://d15lahxggl4k3" path="res://Fonts/IosevkaCharonMono-Bold.ttf" id="6_25pds"]
 [ext_resource type="FontFile" uid="uid://c7jgfu00fb2bi" path="res://Fonts/IosevkaCharonMono-Regular.ttf" id="7_uovm1"]
 [ext_resource type="Script" uid="uid://xe53gbrlv6a" path="res://Scripts/Chest/chest_prompt.gd" id="8_prm"]
-[ext_resource type="Script" path="res://Scripts/Chest/chest_loot_entry.gd" id="9_clen"]
-[ext_resource type="Resource" path="res://Resources/Items/fruit.tres" id="10_frut"]
-[ext_resource type="Resource" path="res://Resources/Items/ember.tres" id="11_embr"]
-[ext_resource type="Resource" path="res://Resources/Items/salve.tres" id="12_slve"]
-[ext_resource type="Resource" path="res://Resources/Items/slate.tres" id="13_slat"]
-
-[sub_resource type="LabelSettings" id="LabelSettings_fmu24"]
-font = ExtResource("6_25pds")
-font_size = 8
-font_color = Color(0.99607843, 0.5019608, 0.09803922, 1)
-outline_size = 4
-outline_color = Color(0.11372549, 0.1254902, 0.12941177, 1)
-
-[sub_resource type="LabelSettings" id="LabelSettings_mrmno"]
-font = ExtResource("7_uovm1")
-font_size = 8
-font_color = Color(0.92156863, 0.85882354, 0.69803923, 1)
-outline_size = 4
-outline_color = Color(0.11372549, 0.1254902, 0.12941177, 1)
-
-[sub_resource type="RectangleShape2D" id="RectangleShape2D_chest"]
-size = Vector2(24, 20)
+[ext_resource type="Script" uid="uid://rc2relm1oafq" path="res://Scripts/Chest/chest_loot_entry.gd" id="9_clen"]
+[ext_resource type="Resource" uid="uid://co6ayjggk2ix3" path="res://Resources/Items/fruit.tres" id="10_frut"]
+[ext_resource type="Resource" uid="uid://dbsuboylmb1mw" path="res://Resources/Items/ember.tres" id="11_embr"]
+[ext_resource type="Resource" uid="uid://bha48ff1y5wf4" path="res://Resources/Items/salve.tres" id="12_slve"]
+[ext_resource type="AudioStream" uid="uid://bcmsbcjgu13pd" path="res://Audio/SFX/General Sounds/Neutral Sounds/sfx_sound_neutral8.ogg" id="13_a0i6c"]
+[ext_resource type="AudioStream" uid="uid://ctwhyuhc1qxr" path="res://Audio/SFX/General Sounds/Interactions/sfx_sounds_interaction4.ogg" id="13_irijg"]
+[ext_resource type="Resource" uid="uid://dihsbr30k6cml" path="res://Resources/Items/slate.tres" id="13_slat"]
+[ext_resource type="AudioStream" uid="uid://da7x6i6eehb1m" path="res://Audio/SFX/General Sounds/Interactions/sfx_sounds_interaction22.ogg" id="14_2jrwr"]
+[ext_resource type="AudioStream" uid="uid://damsybee7hxwn" path="res://Audio/SFX/General Sounds/Interactions/sfx_sounds_interaction18.ogg" id="15_irijg"]
+[ext_resource type="AudioStream" uid="uid://bsnyhj8ivmsy8" path="res://Audio/SFX/General Sounds/Buttons/sfx_sounds_button12.ogg" id="17_qhimo"]
+[ext_resource type="AudioStream" uid="uid://cs340buiuwo27" path="res://Audio/SFX/General Sounds/Interactions/sfx_sounds_interaction3.ogg" id="18_cqn7c"]
 
 [sub_resource type="Resource" id="Resource_loot_fruit"]
 script = ExtResource("9_clen")
@@ -50,6 +39,23 @@ weight = 2.0
 script = ExtResource("9_clen")
 item = ExtResource("13_slat")
 weight = 4.0
+
+[sub_resource type="LabelSettings" id="LabelSettings_fmu24"]
+font = ExtResource("6_25pds")
+font_size = 8
+font_color = Color(0.99607843, 0.5019608, 0.09803922, 1)
+outline_size = 4
+outline_color = Color(0.11372549, 0.1254902, 0.12941177, 1)
+
+[sub_resource type="LabelSettings" id="LabelSettings_mrmno"]
+font = ExtResource("7_uovm1")
+font_size = 8
+font_color = Color(0.92156863, 0.85882354, 0.69803923, 1)
+outline_size = 4
+outline_color = Color(0.11372549, 0.1254902, 0.12941177, 1)
+
+[sub_resource type="RectangleShape2D" id="RectangleShape2D_chest"]
+size = Vector2(24, 20)
 
 [node name="Chest" type="Node2D" unique_id=455512233 node_paths=PackedStringArray("sprite", "trigger", "sfx", "vfx", "prompt")]
 z_index = -1
@@ -99,6 +105,13 @@ shape = SubResource("RectangleShape2D_chest")
 
 [node name="Sfx" type="Node" parent="." unique_id=1439441858]
 script = ExtResource("3_chst")
+sound_open = ExtResource("13_irijg")
+sound_revealed = ExtResource("13_a0i6c")
+sound_taken = ExtResource("14_2jrwr")
+sound_returned = ExtResource("15_irijg")
+sound_reopen = ExtResource("17_qhimo")
+sound_close = ExtResource("18_cqn7c")
+volume_db = -2.0
 
 [node name="Vfx" type="CPUParticles2D" parent="." unique_id=1571135042 node_paths=PackedStringArray("sprite")]
 script = ExtResource("4_chst")
