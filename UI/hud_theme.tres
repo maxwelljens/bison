@@ -1,0 +1,16 @@
+[gd_resource type="Theme" format=3 uid="uid://bensgq7jf7ndn"]
+
+[ext_resource type="FontFile" uid="uid://c7jgfu00fb2bi" path="res://Fonts/IosevkaCharonMono-Regular.ttf" id="1_3jrto"]
+
+[sub_resource type="StyleBoxFlat" id="StyleBoxFlat_fxevp"]
+bg_color = Color(0.19607843, 0.1882353, 0.18431373, 1)
+
+[resource]
+Label/colors/font_color = Color(0.92156863, 0.85882354, 0.69803923, 1)
+Label/colors/font_outline_color = Color(0.19607843, 0.1882353, 0.18431373, 1)
+Label/fonts/font = ExtResource("1_3jrto")
+MarginContainer/constants/margin_bottom = 12
+MarginContainer/constants/margin_left = 12
+MarginContainer/constants/margin_right = 12
+MarginContainer/constants/margin_top = 12
+PanelContainer/styles/panel = SubResource("StyleBoxFlat_fxevp")

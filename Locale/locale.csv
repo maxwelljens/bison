@@ -1,3 +1,9 @@
 key,pl,en
 INFO_OPEN,Otwórz,Open
 INFO_LOOT,Pogrzebaj,Rummage
+LABEL_CHEST,Skrzynia,Chest
+LABEL_PLAYER,Łup,Haul
+ITEM_FRUIT,Owoc,Fruit
+ITEM_EMBER,Żar,Ember
+ITEM_SALVE,Maść,Salve
+ITEM_SLATE,Łupek,Slate

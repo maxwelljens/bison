@@ -2,17 +2,19 @@
 
 [ext_resource type="Material" uid="uid://b58hmfqvhrknn" path="res://Shaders/crt.tres" id="1_3158n"]
 [ext_resource type="TileSet" uid="uid://bac1b5al6grbt" path="res://Resources/bg_tileset.tres" id="1_i4ak4"]
+[ext_resource type="PackedScene" uid="uid://84i8gvlr8t72" path="res://UI/Scenes/hud.tscn" id="1_pvdih"]
 [ext_resource type="TileSet" uid="uid://dovecwwpkmnqc" path="res://Resources/fg_tileset.tres" id="2_3158n"]
 [ext_resource type="PackedScene" uid="uid://g2bnsf747asl" path="res://Scenes/player.tscn" id="2_ub4j8"]
 [ext_resource type="PackedScene" uid="uid://c5nqvi1g3p55l" path="res://Scenes/bot.tscn" id="3_4k50d"]
-[ext_resource type="PackedScene" path="res://Scenes/chest.tscn" id="7_ub4j8"]
+[ext_resource type="PackedScene" uid="uid://beomhqbeouj18" path="res://Scenes/chest.tscn" id="7_ub4j8"]
 
 [node name="TestLevel" type="Node2D" unique_id=277619520]
 
-[node name="Shader" type="CanvasLayer" parent="." unique_id=51396446]
+[node name="Foreground" type="CanvasLayer" parent="." unique_id=51396446]
 
-[node name="CRTShader" type="ColorRect" parent="Shader" unique_id=1760162168]
-z_index = -4096
+[node name="HUD" parent="Foreground" unique_id=188150801 instance=ExtResource("1_pvdih")]
+
+[node name="CRTShader" type="ColorRect" parent="Foreground" unique_id=1760162168]
 material = ExtResource("1_3158n")
 offset_right = 2046.0
 offset_bottom = 2046.0
