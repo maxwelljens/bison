@@ -15,7 +15,8 @@ extends Node2D
 ## in one at a time over [member rummage_time] while the player is in
 ## range (leaving pauses mid-item, returning resumes). Revealed items
 ## are takeable through the [Loot] autoload. Every in-range press
-## re-fires [signal opened] and re-presents the screen. All feedback
+## re-fires [signal opened]; when the screen is already up, the press
+## closes it instead (toggle). All feedback
 ## components degrade silently when their references are unassigned, so
 ## a bare chest in a test level never errors.
 ## Visual: swapped from the closed texture on open.
@@ -93,13 +94,14 @@ func _physics_process(delta: float) -> void:
 	# Poll the action here, matching the Player's once-per-frame input
 	# gather; the trigger state is the only gate.
 	if _in_range and Input.is_action_just_pressed("interact"):
-		open()
+		_handle_interact()
 	_tick_rummage(delta)
 
 
 ## Runs the open transaction: texture swap, SFX, VFX burst, one-time
 ## loot roll, signal. Re-presses only re-emit [signal opened] and
-## re-present the loot screen.
+## re-present the loot screen; pressing E while this chest owns the
+## session closes the screen again.
 func open() -> void:
 	if not _is_open:
 		_is_open = true
@@ -113,8 +115,22 @@ func open() -> void:
 		if not _rolled:
 			_roll_contents()
 			contents_changed.emit()
+	else:
+		if sfx != null:
+			sfx.play(ChestSfx.Event.REOPEN)
 	opened.emit()
 	Loot.open_session(self)
+
+
+## Interact press: toggles the loot screen; the first press runs the
+## open transaction, further presses close and re-open it.
+func _handle_interact() -> void:
+	if _is_open and Loot.session == self:
+		if sfx != null:
+			sfx.play(ChestSfx.Event.CLOSE)
+		Loot.close_session(self)
+	else:
+		open()
 
 
 ## Revealed items currently in the chest, takeable by the player.
@@ -156,8 +172,6 @@ func _on_body_entered(body: Node2D) -> void:
 	if body is Player:
 		_in_range = true
 		_show_prompt()
-		if _is_open:
-			Loot.open_session(self)
 
 
 func _on_body_exited(body: Node2D) -> void:
@@ -246,11 +260,12 @@ func _roll_contents() -> void:
 				break
 
 
-## Advances the head reveal while the player is in range; leaving the
-## trigger pauses it mid-item and returning resumes (DESIGN.md
+## Advances the head reveal while the player is in range and the loot
+## screen is up; leaving the trigger or pressing E to close the screen
+## pauses it mid-item, either coming back resumes (DESIGN.md
 ## pause-on-leave).
 func _tick_rummage(delta: float) -> void:
-	if not _is_open or not _in_range or _pending.is_empty():
+	if not _is_open or not _in_range or Loot.session != self or _pending.is_empty():
 		return
 	_slot_progress += delta / maxf(_slot_duration, 0.001)
 	if _slot_progress >= 1.0:

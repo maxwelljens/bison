@@ -25,6 +25,10 @@ enum Event {
 	TAKEN,
 	## The player puts an item back.
 	RETURNED,
+	## The loot screen is presented again for an already open chest.
+	REOPEN,
+	## The loot screen closes.
+	CLOSE,
 }
 
 ## Played when the chest opens.
@@ -35,6 +39,10 @@ enum Event {
 @export var sound_taken: AudioStream = preload("res://Audio/SFX/General Sounds/Coins/sfx_coin_single1.ogg")
 ## Played when the player puts an item back.
 @export var sound_returned: AudioStream = preload("res://Audio/SFX/General Sounds/Menu Sounds/sfx_menu_select2.ogg")
+## Played when the loot screen is presented again for an open chest.
+@export var sound_reopen: AudioStream = preload("res://Audio/SFX/General Sounds/Interactions/sfx_sounds_interaction1.ogg")
+## Played when the loot screen closes.
+@export var sound_close: AudioStream = preload("res://Audio/SFX/General Sounds/Menu Sounds/sfx_menu_move1.ogg")
 
 ## Number of overlapping sounds allowed before the oldest is reused.
 @export_range(1, 16) var voice_count: int = 4
@@ -80,4 +88,8 @@ func _stream_for(event: Event) -> AudioStream:
 			return sound_taken
 		Event.RETURNED:
 			return sound_returned
+		Event.REOPEN:
+			return sound_reopen
+		Event.CLOSE:
+			return sound_close
 	return null
