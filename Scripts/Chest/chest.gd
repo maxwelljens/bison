@@ -1,21 +1,23 @@
 @icon("res://addons/at-icons/node/chest.svg")
 class_name Chest
 extends Node2D
-## Interactive loot chest: opens on the [b]interact[/b] action while a
-## character body stands in its trigger area.
+## Interactive loot chest: opens on the [b]interact[/b] action while the
+## player stands in its trigger area, then rummages its contents open.
 ##
 ## The chest is the first interactive entity, so its contract is the
-## project's interaction template: an [Area2D] trigger tracks nearby
-## bodies (filtered to [CharacterBody2D] so static tile collision never
-## counts), the root polls the input action in its physics step, and
-## the open transaction fans out to Sfx, Vfx and the [signal opened]
-## signal that the future loot/inventory increment hooks into.
+## project's interaction template: an [Area2D] trigger tracks the
+## [Player] (so no other body fakes proximity), the root polls the input
+## action in its physics step, and the open transaction fans out to Sfx,
+## Vfx, the [signal opened] signal and the [Loot] autoload session the
+## HUD listens to.
 ##
-## Opening is visually one-way but the chest stays interactable: every
-## in-range press re-fires [signal opened], which is what the later
-## loot UI will consume. All feedback components degrade silently when
-## their references are unassigned, so a bare chest in a test level
-## never errors.
+## Opening rolls [member loot_pool] once; the rolled items then buffer
+## in one at a time over [member rummage_time] while the player is in
+## range (leaving pauses mid-item, returning resumes). Revealed items
+## are takeable through the [Loot] autoload. Every in-range press
+## re-fires [signal opened] and re-presents the screen. All feedback
+## components degrade silently when their references are unassigned, so
+## a bare chest in a test level never errors.
 ## Visual: swapped from the closed texture on open.
 @export var sprite: Sprite2D
 ## Trigger area whose overlap state gates the interact action.
@@ -46,14 +48,36 @@ extends Node2D
 ## Fade duration for the prompt's show/hide, in s.
 @export_range(0.0, 1.0, 0.01, "suffix:s") var prompt_fade: float = 0.15
 
-## Fired on every in-range interact press while open or closed; the
-## loot increment decides what each press yields.
-signal opened
+@export_category("Loot")
+## Weighted pool rolled on first open; duplicates are allowed.
+@export var loot_pool: Array[ChestLootEntry] = []
+## Number of items rolled on first open.
+@export_range(1, 32) var roll_count: int = 4
+## Total seconds to reveal every rolled item, split evenly across them.
+@export_range(0.1, 30.0, 0.1, "suffix:s") var rummage_time: float = 3.0
 
-# Whether a CharacterBody2D currently overlaps the trigger.
+## Fired on every in-range interact press while open or closed; the
+## loot session re-presents the screen on each press.
+signal opened
+## Fired when the visible item list changes (roll, reveal, take, return).
+signal contents_changed
+## Fired every physics tick while the active item buffers in, 0..1.
+signal reveal_progress_changed(progress: float)
+
+# Whether the Player currently overlaps the trigger.
 var _in_range: bool = false
 # One-time open state; re-presses still re-emit [signal opened].
 var _is_open: bool = false
+# Rolled items still buffering in, in reveal order; the head is next.
+var _pending: Array[Item] = []
+# Revealed items, takeable by the player.
+var _revealed: Array[Item] = []
+# Whether the one-time content roll already happened.
+var _rolled: bool = false
+# Seconds one reveal slot takes; fixed when the contents roll.
+var _slot_duration: float = 0.0
+# Fill of the current reveal slot, 0..1.
+var _slot_progress: float = 0.0
 
 
 func _ready() -> void:
@@ -65,40 +89,78 @@ func _ready() -> void:
 		trigger.body_exited.connect(_on_body_exited)
 
 
-func _physics_process(_delta: float) -> void:
+func _physics_process(delta: float) -> void:
 	# Poll the action here, matching the Player's once-per-frame input
 	# gather; the trigger state is the only gate.
 	if _in_range and Input.is_action_just_pressed("interact"):
 		open()
+	_tick_rummage(delta)
 
 
-## Runs the open transaction: texture swap, SFX, VFX burst, signal.
+## Runs the open transaction: texture swap, SFX, VFX burst, one-time
+## loot roll, signal. Re-presses only re-emit [signal opened] and
+## re-present the loot screen.
 func open() -> void:
-	if _is_open and texture_open != null and sprite != null:
-		# Already open and showing it; re-presses still re-emit.
-		opened.emit()
-		return
-	_is_open = true
-	if sprite != null and texture_open != null:
-		sprite.texture = texture_open
-	_set_prompt_loot_text()
-	if sfx != null:
-		sfx.play(ChestSfx.Event.OPEN)
-	if vfx != null:
-		vfx.pulse()
+	if not _is_open:
+		_is_open = true
+		if sprite != null and texture_open != null:
+			sprite.texture = texture_open
+		_set_prompt_loot_text()
+		if sfx != null:
+			sfx.play(ChestSfx.Event.OPEN)
+		if vfx != null:
+			vfx.pulse()
+		if not _rolled:
+			_roll_contents()
+			contents_changed.emit()
 	opened.emit()
+	Loot.open_session(self)
+
+
+## Revealed items currently in the chest, takeable by the player.
+func revealed_items() -> Array[Item]:
+	return _revealed.duplicate()
+
+
+## Items still buffering in, in reveal order.
+func pending_items() -> Array[Item]:
+	return _pending.duplicate()
+
+
+## Fill of the currently buffering item, 0..1.
+func slot_progress() -> float:
+	return _slot_progress
+
+
+## Removes one revealed instance of the item; false when not takeable.
+func take_item(item: Item) -> bool:
+	var index := _revealed.find(item)
+	if index == -1:
+		return false
+	_revealed.remove_at(index)
+	contents_changed.emit()
+	return true
+
+
+## Puts a taken item back in, already revealed (no re-rummage).
+func return_item(item: Item) -> void:
+	_revealed.append(item)
+	contents_changed.emit()
 
 
 func _on_body_entered(body: Node2D) -> void:
-	if body is CharacterBody2D:
+	if body is Player:
 		_in_range = true
 		_show_prompt()
+		if _is_open:
+			Loot.open_session(self)
 
 
 func _on_body_exited(body: Node2D) -> void:
-	if body is CharacterBody2D:
+	if body is Player:
 		_in_range = false
 		_hide_prompt()
+		Loot.close_session(self)
 
 
 ## Writes the closed texture onto the sprite; keeps the sprite's own
@@ -152,3 +214,50 @@ func _hide_prompt() -> void:
 	var tween := create_tween()
 	tween.tween_property(prompt, "modulate:a", 0.0, prompt_fade)
 	tween.tween_callback(prompt.hide)
+
+
+## Rolls [member roll_count] items from the weighted pool on first
+## open; duplicates are allowed and the roll order doubles as the
+## reveal order.
+func _roll_contents() -> void:
+	_rolled = true
+	_pending.clear()
+	_revealed.clear()
+	var pool: Array[ChestLootEntry] = []
+	for entry: ChestLootEntry in loot_pool:
+		if entry != null and entry.item != null and entry.weight > 0.0:
+			pool.append(entry)
+	var total_weight := 0.0
+	for entry: ChestLootEntry in pool:
+		total_weight += entry.weight
+	if total_weight <= 0.0:
+		return
+	_slot_duration = rummage_time / float(roll_count)
+	for i in roll_count:
+		var roll := randf() * total_weight
+		for entry: ChestLootEntry in pool:
+			roll -= entry.weight
+			if roll <= 0.0:
+				_pending.append(entry.item)
+				break
+
+
+## Advances the head reveal while the player is in range; leaving the
+## trigger pauses it mid-item and returning resumes (DESIGN.md
+## pause-on-leave).
+func _tick_rummage(delta: float) -> void:
+	if not _is_open or not _in_range or _pending.is_empty():
+		return
+	_slot_progress += delta / maxf(_slot_duration, 0.001)
+	if _slot_progress >= 1.0:
+		_reveal_head()
+	else:
+		reveal_progress_changed.emit(_slot_progress)
+
+
+## Completes the head reveal: moves it into the takeable list.
+func _reveal_head() -> void:
+	_slot_progress = 0.0
+	var item: Item = _pending.pop_front()
+	_revealed.append(item)
+	contents_changed.emit()

@@ -20,6 +20,10 @@ config/icon="res://icon.svg"
 
 buses/default_bus_layout="uid://lbvjh2jlr4j2"
 
+[autoload]
+
+Loot="*res://Scripts/Loot/loot.gd"
+
 [display]
 
 window/stretch/mode="canvas_items"

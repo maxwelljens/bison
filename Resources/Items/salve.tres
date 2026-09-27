@@ -1,0 +1,11 @@
+[gd_resource type="Resource" script_class="Item" format=3]
+
+[ext_resource type="Script" path="res://Scripts/Items/item.gd" id="1_item"]
+[ext_resource type="Texture2D" path="res://Textures/Tiles/Transparent/tile_0008.png" id="2_tex"]
+
+[resource]
+script = ExtResource("1_item")
+id = &"salve"
+name_key = "ITEM_SALVE"
+texture = ExtResource("2_tex")
+weight = 0.3
