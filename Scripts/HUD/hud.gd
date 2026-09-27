@@ -1,3 +1,4 @@
+@icon("res://addons/at-icons/control/window.svg")
 class_name Hud
 extends Control
 ## Loot screen root: shows the chest panel during a session and keeps

@@ -1,3 +1,4 @@
+@icon("res://addons/at-icons/control/ingot.svg")
 class_name InventoryItemView
 extends PanelContainer
 ## One slot in an inventory grid: icon when revealed, fill bar while

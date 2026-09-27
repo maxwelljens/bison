@@ -1,3 +1,4 @@
+@icon("res://addons/at-icons/control/chest.svg")
 class_name ChestInventory
 extends NinePatchRect
 ## Chest-side loot panel: renders the session chest's contents.

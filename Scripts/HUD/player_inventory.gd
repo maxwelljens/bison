@@ -1,3 +1,4 @@
+@icon("res://addons/at-icons/control/backpack.svg")
 class_name PlayerInventory
 extends NinePatchRect
 ## Player-side haul strip: carried items and total weight readout.

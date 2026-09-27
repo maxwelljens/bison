@@ -1,12 +1,13 @@
 [gd_scene format=3 uid="uid://dx1i65a1hmv0b"]
 
 [ext_resource type="Texture2D" uid="uid://bap8ir6hiin4n" path="res://Textures/Tiles/Transparent/tile_0011.png" id="1_faln2"]
-[ext_resource type="Script" path="res://Scripts/HUD/inventory_item.gd" id="2_iitv"]
+[ext_resource type="Script" uid="uid://bls8mx7s70uaa" path="res://Scripts/HUD/inventory_item.gd" id="2_iitv"]
 
 [sub_resource type="StyleBoxFlat" id="StyleBoxFlat_wgohc"]
 bg_color = Color(0.5137255, 0.64705884, 0.59607846, 1)
 
 [node name="InventoryItem" type="PanelContainer" unique_id=1764182738 node_paths=PackedStringArray("progress", "icon")]
+custom_minimum_size = Vector2(32, 32)
 script = ExtResource("2_iitv")
 progress = NodePath("ProgressBar")
 icon = NodePath("TextureRect")
@@ -21,7 +22,6 @@ show_percentage = false
 
 [node name="TextureRect" type="TextureRect" parent="." unique_id=1052287604]
 self_modulate = Color(0.92156863, 0.85882354, 0.69803923, 1)
-custom_minimum_size = Vector2(48, 48)
 layout_mode = 2
 mouse_filter = 2
 texture = ExtResource("1_faln2")

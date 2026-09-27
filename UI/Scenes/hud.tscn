@@ -4,9 +4,9 @@
 [ext_resource type="Texture2D" uid="uid://bvveq6ybo0x45" path="res://UI/plate_ninepatch.tres" id="2_rx5l5"]
 [ext_resource type="PackedScene" uid="uid://dx1i65a1hmv0b" path="res://UI/Scenes/inventory_item.tscn" id="3_rx5l5"]
 [ext_resource type="Texture2D" uid="uid://bejt5e4grp4cq" path="res://Textures/Tilemap/monochrome_tilemap_transparent_packed.png" id="4_v61m3"]
-[ext_resource type="Script" path="res://Scripts/HUD/hud.gd" id="5_hud"]
-[ext_resource type="Script" path="res://Scripts/HUD/chest_inventory.gd" id="6_cinv"]
-[ext_resource type="Script" path="res://Scripts/HUD/player_inventory.gd" id="7_pinv"]
+[ext_resource type="Script" uid="uid://d2buvrw78dwuq" path="res://Scripts/HUD/hud.gd" id="5_hud"]
+[ext_resource type="Script" uid="uid://cb1u2oxth5poc" path="res://Scripts/HUD/chest_inventory.gd" id="6_cinv"]
+[ext_resource type="Script" uid="uid://l7k5sh7qxna1" path="res://Scripts/HUD/player_inventory.gd" id="7_pinv"]
 
 [sub_resource type="AtlasTexture" id="AtlasTexture_v61m3"]
 atlas = ExtResource("4_v61m3")
@@ -27,7 +27,7 @@ layout_mode = 0
 offset_left = 360.0
 offset_top = 440.0
 offset_right = 864.0
-offset_bottom = 544.0
+offset_bottom = 528.0
 texture = ExtResource("2_rx5l5")
 patch_margin_left = 12
 patch_margin_top = 12
@@ -64,9 +64,9 @@ self_modulate = Color(0.15686275, 0.15686275, 0.15686275, 1)
 texture_filter = 1
 layout_mode = 0
 offset_left = 360.0
-offset_top = 560.0
+offset_top = 544.0
 offset_right = 864.0
-offset_bottom = 636.0
+offset_bottom = 632.0
 texture = SubResource("AtlasTexture_v61m3")
 patch_margin_left = 12
 patch_margin_top = 12
@@ -87,18 +87,18 @@ anchor_bottom = 1.0
 grow_horizontal = 2
 grow_vertical = 2
 
-[node name="VBoxContainer" type="VBoxContainer" parent="PlayerInventory/MarginContainer"]
+[node name="VBoxContainer" type="VBoxContainer" parent="PlayerInventory/MarginContainer" unique_id=1082589740]
 layout_mode = 2
 
-[node name="Header" type="HBoxContainer" parent="PlayerInventory/MarginContainer/VBoxContainer"]
+[node name="Header" type="HBoxContainer" parent="PlayerInventory/MarginContainer/VBoxContainer" unique_id=33199535]
 layout_mode = 2
 
-[node name="Title" type="Label" parent="PlayerInventory/MarginContainer/VBoxContainer/Header"]
+[node name="Title" type="Label" parent="PlayerInventory/MarginContainer/VBoxContainer/Header" unique_id=330736718]
 layout_mode = 2
 size_flags_horizontal = 3
 text = "LABEL_PLAYER"
 
-[node name="Weight" type="Label" parent="PlayerInventory/MarginContainer/VBoxContainer/Header"]
+[node name="Weight" type="Label" parent="PlayerInventory/MarginContainer/VBoxContainer/Header" unique_id=521812141]
 layout_mode = 2
 text = "0.0"
 

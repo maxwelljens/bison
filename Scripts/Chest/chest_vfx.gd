@@ -1,4 +1,4 @@
-@icon("res://addons/at-icons/node/gem.svg")
+@icon("res://addons/at-icons/node/magic_wand.svg")
 class_name ChestVfx
 extends CPUParticles2D
 ## One-shot open burst for the chest: a small particle poof plus a
