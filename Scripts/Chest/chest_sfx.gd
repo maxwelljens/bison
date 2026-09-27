@@ -19,10 +19,22 @@ extends Node
 enum Event {
 	## Lid opens.
 	OPEN,
+	## An item finishes buffering in.
+	REVEALED,
+	## The player takes a revealed item.
+	TAKEN,
+	## The player puts an item back.
+	RETURNED,
 }
 
 ## Played when the chest opens.
 @export var sound_open: AudioStream = preload("res://Audio/SFX/General Sounds/Buttons/sfx_sounds_button6.ogg")
+## Played when an item finishes buffering in.
+@export var sound_revealed: AudioStream = preload("res://Audio/SFX/General Sounds/Simple Bleeps/sfx_sounds_Blip1.ogg")
+## Played when the player takes an item.
+@export var sound_taken: AudioStream = preload("res://Audio/SFX/General Sounds/Coins/sfx_coin_single1.ogg")
+## Played when the player puts an item back.
+@export var sound_returned: AudioStream = preload("res://Audio/SFX/General Sounds/Menu Sounds/sfx_menu_select2.ogg")
 
 ## Number of overlapping sounds allowed before the oldest is reused.
 @export_range(1, 16) var voice_count: int = 4
@@ -62,4 +74,10 @@ func _stream_for(event: Event) -> AudioStream:
 	match event:
 		Event.OPEN:
 			return sound_open
+		Event.REVEALED:
+			return sound_revealed
+		Event.TAKEN:
+			return sound_taken
+		Event.RETURNED:
+			return sound_returned
 	return null

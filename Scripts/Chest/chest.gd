@@ -138,6 +138,8 @@ func take_item(item: Item) -> bool:
 	if index == -1:
 		return false
 	_revealed.remove_at(index)
+	if sfx != null:
+		sfx.play(ChestSfx.Event.TAKEN)
 	contents_changed.emit()
 	return true
 
@@ -145,6 +147,8 @@ func take_item(item: Item) -> bool:
 ## Puts a taken item back in, already revealed (no re-rummage).
 func return_item(item: Item) -> void:
 	_revealed.append(item)
+	if sfx != null:
+		sfx.play(ChestSfx.Event.RETURNED)
 	contents_changed.emit()
 
 
@@ -260,4 +264,6 @@ func _reveal_head() -> void:
 	_slot_progress = 0.0
 	var item: Item = _pending.pop_front()
 	_revealed.append(item)
+	if sfx != null:
+		sfx.play(ChestSfx.Event.REVEALED)
 	contents_changed.emit()
