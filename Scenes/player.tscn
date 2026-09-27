@@ -56,8 +56,8 @@ size = Vector2(12, 11)
 [node name="Player" type="CharacterBody2D" unique_id=244470271 node_paths=PackedStringArray("state_grounded", "state_airborne", "animator", "sfx")]
 script = ExtResource("1_cvnsp")
 move_speed = 50.0
-acceleration = 500.0
-friction = 100.0
+acceleration = 250.0
+friction = 130.0
 jump_velocity = -150.0
 state_grounded = NodePath("StateMachine/Grounded")
 state_airborne = NodePath("StateMachine/Airborne")
