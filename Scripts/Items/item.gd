@@ -12,5 +12,7 @@ extends Resource
 @export var name_key: String
 ## Icon shown in inventory slots.
 @export var texture: Texture2D
+## Tint applied to [member texture] in inventory slots.
+@export var color: Color = Color.WHITE
 ## Weight added to the haul when carried, in arbitrary units.
 @export_range(0.0, 100.0, 0.1) var weight: float = 1.0

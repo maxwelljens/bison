@@ -35,6 +35,7 @@ func bind(next_item: Item, is_revealed: bool) -> void:
 	if icon != null:
 		icon.visible = is_revealed
 		icon.texture = next_item.texture if next_item != null else null
+		icon.self_modulate = next_item.color if next_item != null else Color.WHITE
 
 
 ## Sets the buffering fill, 0..1.
