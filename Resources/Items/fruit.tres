@@ -1,11 +1,12 @@
-[gd_resource type="Resource" script_class="Item" format=3]
+[gd_resource type="Resource" script_class="Item" format=3 uid="uid://co6ayjggk2ix3"]
 
-[ext_resource type="Script" path="res://Scripts/Items/item.gd" id="1_item"]
-[ext_resource type="Texture2D" path="res://Textures/Tiles/Transparent/tile_0002.png" id="2_tex"]
+[ext_resource type="Script" uid="uid://gkhymnxpcw76" path="res://Scripts/Items/item.gd" id="1_item"]
+[ext_resource type="Texture2D" uid="uid://do3xtn13nr32x" path="res://Textures/Tiles/Transparent/tile_0365.png" id="2_e0hhb"]
 
 [resource]
 script = ExtResource("1_item")
 id = &"fruit"
 name_key = "ITEM_FRUIT"
-texture = ExtResource("2_tex")
+texture = ExtResource("2_e0hhb")
+color = Color(0.59607846, 0.5921569, 0.101960786, 1)
 weight = 0.5

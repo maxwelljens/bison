@@ -1,11 +1,11 @@
-[gd_resource type="Resource" script_class="Item" format=3]
+[gd_resource type="Resource" script_class="Item" format=3 uid="uid://dbsuboylmb1mw"]
 
-[ext_resource type="Script" path="res://Scripts/Items/item.gd" id="1_item"]
-[ext_resource type="Texture2D" path="res://Textures/Tiles/Transparent/tile_0005.png" id="2_tex"]
+[ext_resource type="Script" uid="uid://gkhymnxpcw76" path="res://Scripts/Items/item.gd" id="1_item"]
+[ext_resource type="Texture2D" uid="uid://dey6bji4cwgx5" path="res://Textures/Tiles/Transparent/tile_0082.png" id="2_ommb8"]
 
 [resource]
 script = ExtResource("1_item")
 id = &"ember"
 name_key = "ITEM_EMBER"
-texture = ExtResource("2_tex")
-weight = 1.0
+texture = ExtResource("2_ommb8")
+color = Color(0.99607843, 0.5019608, 0.09803922, 1)
