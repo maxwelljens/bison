@@ -19,6 +19,22 @@ Read this before touching anything.
   hardcode a value. The `3d/physics_engine="Jolt Physics"` setting is
   irrelevant to gameplay.
 
+## Game design (read `docs/DESIGN.md`)
+
+`docs/DESIGN.md` holds the holistic design document: genre fusion
+(Rain World-like fragile survival × extraction-looter), cycle = one
+day (06:00–21:00, digital clock, night is lethal, warren = only
+shelter), permadeath, rising daily toll, one expedition per day,
+Tarkov-style chest rummage with continuous cargo weight, one-touch
+mortality, sensing-hunter threats powered by the existing
+Bot/pathfinding stack, interlocked horizontal/vertical world, no map,
+ambiguous precursor ruins, Mok (pl. the Moks) as the protagonist
+species, Fruit/Ember/Salve/Slate as upkeep resources. Tone: quiet
+melancholy, ambient-only audio, 1-bit art destination. Any feature
+work must stay consistent with the loop and tone defined there;
+open items in that doc are intentionally undecided — do not silently
+commit them. The warren (hidden burrow system) is the colony home.
+
 ## Repository layout
 
 - `project.godot` — engine config and input map.
