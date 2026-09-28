@@ -47,7 +47,7 @@ enum Event {
 @export var sound_footsteps: Array[AudioStream]
 ## Played once per stop (unassigned by default: the pack has no skid
 ## sound yet; assign one in the Inspector or leave empty for silence).
-@export var sound_stop: AudioStream = preload("/media/Development/bison/Audio/SFX/Movement/Footsteps/sfx_movement_footstepsloop4_slow.ogg")
+@export var sound_stop: AudioStream = preload("res://Audio/SFX/Movement/Footsteps/sfx_movement_footstepsloop4_slow.ogg")
 
 ## Number of overlapping sounds allowed before the oldest is reused.
 @export_range(1, 16) var voice_count: int = 4
