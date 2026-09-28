@@ -67,6 +67,8 @@ signal reveal_progress_changed(progress: float)
 
 # Whether the Player currently overlaps the trigger.
 var _in_range: bool = false
+# The Player in the trigger, for the controls gate on the interact poll.
+var _player: Player
 # One-time open state; re-presses still re-emit [signal opened].
 var _is_open: bool = false
 # Rolled items still buffering in, in reveal order; the head is next.
@@ -92,8 +94,10 @@ func _ready() -> void:
 
 func _physics_process(delta: float) -> void:
 	# Poll the action here, matching the Player's once-per-frame input
-	# gather; the trigger state is the only gate.
-	if _in_range and Input.is_action_just_pressed("interact"):
+	# gather; the trigger state and the player's control lockout (stun,
+	# death) are the gates.
+	if _in_range and _player != null and _player.controls_enabled() \
+			and Input.is_action_just_pressed("interact"):
 		_handle_interact()
 	_tick_rummage(delta)
 
@@ -171,12 +175,14 @@ func return_item(item: Item) -> void:
 func _on_body_entered(body: Node2D) -> void:
 	if body is Player:
 		_in_range = true
+		_player = body as Player
 		_show_prompt()
 
 
 func _on_body_exited(body: Node2D) -> void:
 	if body is Player:
 		_in_range = false
+		_player = null
 		_hide_prompt()
 		Loot.close_session(self)
 
