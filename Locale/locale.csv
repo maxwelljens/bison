@@ -8,7 +8,7 @@ ITEM_EMBER,Żar,Ember
 ITEM_SALVE,Maść,Salve
 ITEM_SLATE,Łupek,Slate
 LABEL_WEIGHT,Waga,Weight
-ITEM_FRUIT_DESC,Opis zastępczy.,Placeholder description.
-ITEM_EMBER_DESC,Opis zastępczy.,Placeholder description.
-ITEM_SALVE_DESC,Opis zastępczy.,Placeholder description.
-ITEM_SLATE_DESC,Opis zastępczy.,Placeholder description.
+ITEM_FRUIT_DESC,Świeżo zebrany.,Freshly picked.
+ITEM_EMBER_DESC,Paliwo niezbędne do zasilania pieców i maszyn.,"Fuel, crucial for powering heaters and machines."
+ITEM_SALVE_DESC,Naturalny lek o wielu zastosowaniach.,Natural medicine with many uses.
+ITEM_SLATE_DESC,"Miękki kamień, przydatny w budowach.","Soft rock, useful in construction."
