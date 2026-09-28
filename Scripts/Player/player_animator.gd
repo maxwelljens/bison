@@ -4,9 +4,9 @@ extends Node
 ## Maps semantic animation intents from the current player state onto
 ## SpriteFrames animations, and owns sprite facing.
 ##
-## States never touch the sprite directly: they report IDLE/RUN/STOP/AIR
-## and the animator resolves animation names, the STOP one-shot hold, and
-## flipping. Swapping art (or renaming animations) only touches the
+## States never touch the sprite directly: they report
+## IDLE/RUN/STOP/AIR/STUN/DEAD and the animator resolves animation
+## names, the STOP one-shot hold, and flipping. Swapping art (or renaming animations) only touches the
 ## exported name mappings below.
 
 ## What the current state wants the sprite to show.
@@ -20,6 +20,10 @@ enum Intent {
 	STOP,
 	## Any airborne phase; rising and falling share the jump frames for now.
 	AIR,
+	## Looping wobble shown for the whole stun lockout.
+	STUN,
+	## One-shot collapse after a lethal landing; holds its last frame.
+	DEAD,
 }
 
 ## The player's AnimatedSprite2D.
@@ -32,6 +36,10 @@ enum Intent {
 @export var anim_stop: StringName = &"stop"
 ## SpriteFrames animation played for [enum Intent.AIR].
 @export var anim_air: StringName = &"jump"
+## SpriteFrames animation played for [enum Intent.STUN].
+@export var anim_stun: StringName = &"stun"
+## SpriteFrames animation played for [enum Intent.DEAD].
+@export var anim_dead: StringName = &"dead"
 ## Seconds the STOP one-shot holds before the pending intent resumes.
 @export_range(0.0, 2.0, 0.05) var stop_hold_time: float = 0.2
 
@@ -43,8 +51,8 @@ var _stop_hold_remaining: float = 0.0
 
 
 ## Applies the state's intent: STOP starts a one-shot latch that ignores
-## IDLE until it expires; RUN and AIR cancel the latch; everything else
-## maps straight to its animation.
+## IDLE until it expires; every other intent cancels the latch (a skid
+## never masks a stun) and maps straight to its animation.
 func set_intent(intent: Intent) -> void:
 	if intent == Intent.STOP:
 		if not _stop_latched:
@@ -52,7 +60,7 @@ func set_intent(intent: Intent) -> void:
 			_stop_hold_remaining = stop_hold_time
 			_show(Intent.STOP)
 		return
-	if intent == Intent.RUN or intent == Intent.AIR:
+	if intent != Intent.IDLE:
 		_stop_latched = false
 		_stop_hold_remaining = 0.0
 		_show(intent)
@@ -90,4 +98,8 @@ func _name_for(intent: Intent) -> StringName:
 			return anim_stop
 		Intent.AIR:
 			return anim_air
+		Intent.STUN:
+			return anim_stun
+		Intent.DEAD:
+			return anim_dead
 	return anim_idle

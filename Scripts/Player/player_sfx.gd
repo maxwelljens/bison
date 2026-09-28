@@ -23,6 +23,10 @@ enum Event {
 	JUMP,
 	## Touchdown after being airborne.
 	LAND,
+	## Hard landing that stuns.
+	HARD_LAND,
+	## Lethal landing; the run ends.
+	DEATH,
 	## One running footstep (timed here, see [member footstep_interval]).
 	FOOTSTEP,
 	## One-frame skid when releasing move input at speed.
@@ -33,6 +37,12 @@ enum Event {
 @export var sound_jump: AudioStream = preload("res://Audio/SFX/Movement/Jumping and Landing/sfx_movement_jump13.ogg")
 ## Played on touchdown; pairs with [member sound_jump].
 @export var sound_land: AudioStream = preload("res://Audio/SFX/Movement/Jumping and Landing/sfx_movement_jump13_landing.ogg")
+## Played on a hard landing that stuns (unassigned by default: assign one
+## in the Inspector or leave empty for silence).
+@export var sound_hard_land: AudioStream
+## Played on a lethal landing (unassigned by default: assign one in the
+## Inspector or leave empty for silence).
+@export var sound_death: AudioStream
 ## Footstep sounds, cycled in order per step.
 @export var sound_footsteps: Array[AudioStream]
 ## Played once per stop (unassigned by default: the pack has no skid
@@ -125,6 +135,10 @@ func _stream_for(event: Event) -> AudioStream:
 			return sound_jump
 		Event.LAND:
 			return sound_land
+		Event.HARD_LAND:
+			return sound_hard_land
+		Event.DEATH:
+			return sound_death
 		Event.STOP:
 			return sound_stop
 	return null

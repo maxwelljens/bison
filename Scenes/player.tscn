@@ -9,11 +9,29 @@
 [ext_resource type="Texture2D" uid="uid://cypmc6s2tnvgb" path="res://Textures/Tiles/Transparent/tile_0262.png" id="6_3smsa"]
 [ext_resource type="Script" uid="uid://dgtal68t3sp8v" path="res://Scripts/Player/airborne.gd" id="6_airb"]
 [ext_resource type="Material" uid="uid://c28vjeawc5x80" path="res://Shaders/outline.tres" id="6_gymyn"]
+[ext_resource type="Texture2D" uid="uid://kv116pkhyeae" path="res://Textures/Tiles/Transparent/tile_0305.png" id="7_7dp3o"]
 [ext_resource type="Script" uid="uid://cd4igwjdq8us3" path="res://Scripts/Player/player_animator.gd" id="7_anim"]
+[ext_resource type="Texture2D" uid="uid://q6mh8qqi3jm1" path="res://Textures/Tiles/Transparent/tile_0306.png" id="8_h4iuc"]
+[ext_resource type="AudioStream" uid="uid://bhnh4ufkoj6gn" path="res://Audio/SFX/General Sounds/Impacts/sfx_sounds_impact11.ogg" id="8_igrcy"]
 [ext_resource type="Script" uid="uid://bfuv25bku7c48" path="res://Scripts/Player/player_sfx.gd" id="8_sfx"]
+[ext_resource type="AudioStream" uid="uid://drd0fu1lq8rg" path="res://Audio/SFX/Death Screams/Alien/sfx_deathscream_alien6.ogg" id="9_fs7ks"]
+[ext_resource type="Script" uid="uid://cor1d6sbd3pt8" path="res://Scripts/Player/stunned.gd" id="9_stun"]
+[ext_resource type="Script" uid="uid://bp6oi3hr20yb4" path="res://Scripts/Player/dead.gd" id="10_dead"]
+[ext_resource type="Texture2D" uid="uid://dfx8uboq4nhlk" path="res://Textures/Tiles/Transparent/tile_0266.png" id="14_fd4e3"]
 
 [sub_resource type="SpriteFrames" id="SpriteFrames_fmu24"]
 animations = [{
+"frames": [{
+"duration": 1.0,
+"texture": ExtResource("7_7dp3o")
+}, {
+"duration": 1.0,
+"texture": ExtResource("8_h4iuc")
+}],
+"loop": 0,
+"name": &"dead",
+"speed": 5.0
+}, {
 "frames": [{
 "duration": 1.0,
 "texture": ExtResource("2_6t5aa")
@@ -48,12 +66,23 @@ animations = [{
 "loop": 1,
 "name": &"stop",
 "speed": 5.0
+}, {
+"frames": [{
+"duration": 1.0,
+"texture": ExtResource("14_fd4e3")
+}, {
+"duration": 1.0,
+"texture": ExtResource("8_h4iuc")
+}],
+"loop": 1,
+"name": &"stun",
+"speed": 5.0
 }]
 
 [sub_resource type="RectangleShape2D" id="RectangleShape2D_fmu24"]
 size = Vector2(12, 11)
 
-[node name="Player" type="CharacterBody2D" unique_id=244470271 node_paths=PackedStringArray("state_grounded", "state_airborne", "animator", "sfx")]
+[node name="Player" type="CharacterBody2D" unique_id=244470271 node_paths=PackedStringArray("state_grounded", "state_airborne", "state_stunned", "state_dead", "animator", "sfx")]
 script = ExtResource("1_cvnsp")
 move_speed = 50.0
 acceleration = 250.0
@@ -61,6 +90,8 @@ friction = 130.0
 jump_velocity = -150.0
 state_grounded = NodePath("StateMachine/Grounded")
 state_airborne = NodePath("StateMachine/Airborne")
+state_stunned = NodePath("StateMachine/Stunned")
+state_dead = NodePath("StateMachine/Dead")
 animator = NodePath("Animator")
 sfx = NodePath("Sfx")
 
@@ -72,12 +103,21 @@ script = ExtResource("5_grnd")
 [node name="Airborne" type="Node" parent="StateMachine" unique_id=674892151]
 script = ExtResource("6_airb")
 
+[node name="Stunned" type="Node" parent="StateMachine" unique_id=554089829]
+script = ExtResource("9_stun")
+stun_time = 1.5
+
+[node name="Dead" type="Node" parent="StateMachine" unique_id=305609661]
+script = ExtResource("10_dead")
+
 [node name="Animator" type="Node" parent="." unique_id=315617902 node_paths=PackedStringArray("sprite")]
 script = ExtResource("7_anim")
 sprite = NodePath("../AnimatedSprite2D")
 
 [node name="Sfx" type="Node" parent="." unique_id=1664568463]
 script = ExtResource("8_sfx")
+sound_hard_land = ExtResource("8_igrcy")
+sound_death = ExtResource("9_fs7ks")
 footstep_interval = 0.2
 volume_db = -10.0
 
@@ -85,8 +125,9 @@ volume_db = -10.0
 modulate = Color(0.72156864, 0.73333335, 0.14901961, 1)
 material = ExtResource("6_gymyn")
 sprite_frames = SubResource("SpriteFrames_fmu24")
-animation = &"idle"
+animation = &"stun"
 autoplay = "idle"
+frame_progress = 0.9516263
 
 [node name="CollisionShape2D" type="CollisionShape2D" parent="." unique_id=725637778]
 position = Vector2(0, 2.5)

@@ -1,16 +1,20 @@
 @icon("res://addons/at-icons/node2d/chess_king.svg")
 class_name Player
 extends CharacterBody2D
-## Player character: platformer movement driven by a two-state machine.
+## Player character: platformer movement driven by a small state machine.
 ##
 ## Input is gathered once per physics frame, then the current state
-## ([PlayerGrounded] or [PlayerAirborne]) runs the frame's physics and
-## ends with move_and_slide(). The player evaluates transitions on that
-## fresh floor state and forwards facing plus animation intent to the
-## [PlayerAnimator]. Grace windows: the jump buffer ticks here (an input
-## memory spanning both states), coyote time lives in [PlayerGrounded],
-## and each state applies the jump cut. All tuning is exported; scene
-## overrides on the node take precedence over the defaults below.
+## ([PlayerGrounded], [PlayerAirborne], [PlayerStunned] or
+## [PlayerDead]) runs the frame's physics and ends with
+## move_and_slide(). The player evaluates transitions on that fresh
+## floor state and forwards facing plus animation intent to the
+## [PlayerAnimator]. Fall damage resolves on the Airborne touchdown
+## edge as landing tiers (safe / stun / lethal) from the drop below the
+## flight's apex — no health pool, DESIGN.md §5. Grace windows: the
+## jump buffer ticks here (an input memory spanning both states),
+## coyote time lives in [PlayerGrounded], and each state applies the
+## jump cut. All tuning is exported; scene overrides on the node take
+## precedence over the defaults below.
 
 @export_category("Movement")
 ## Top run speed in px/s (~8 tiles/s at 16 px tiles).
@@ -28,11 +32,24 @@ extends CharacterBody2D
 ## Terminal fall speed in px/s.
 @export var max_fall_speed: float = 600.0
 
+@export_category("Fall Damage")
+## Drop below the flight's apex in px at or above which a landing stuns
+## (~4 tiles; a full jump reads ~23 px here, so normal landings never
+## reach it).
+@export_range(0.0, 2000.0, 1.0, "suffix:px") var stun_fall_distance: float = 64.0
+## Drop below the flight's apex in px at or above which a landing is
+## lethal (~10 tiles).
+@export_range(0.0, 2000.0, 1.0, "suffix:px") var lethal_fall_distance: float = 160.0
+
 @export_category("State Machine")
 ## Grounded state node: owns coyote time, jump launching, ground intents.
 @export var state_grounded: PlayerGrounded
 ## Airborne state node: owns fall physics and the AIR intent.
 @export var state_airborne: PlayerAirborne
+## Stunned state node: hard-landing lockout with a momentum slide.
+@export var state_stunned: PlayerStunned
+## Dead state node: terminal freeze after a lethal landing.
+@export var state_dead: PlayerDead
 ## Maps state intents to SpriteFrames animations and owns facing.
 @export var animator: PlayerAnimator
 ## Plays sound effects for jump, land, footstep and stop events.
@@ -53,11 +70,17 @@ var jump_buffer_timer: float = 0.0
 var _gravity: float = ProjectSettings.get_setting("physics/2d/default_gravity")
 var _jump_just_pressed: bool = false
 var _current: PlayerState
+# Highest point (lowest y) reached since leaving the floor; the landing
+# tiers measure the drop from here.
+var _apex_y: float = 0.0
 
 
 func _ready() -> void:
 	state_grounded.setup(self)
 	state_airborne.setup(self)
+	state_stunned.setup(self)
+	state_dead.setup(self)
+	_apex_y = global_position.y
 	_current = state_grounded
 	_current.enter(null)
 
@@ -67,11 +90,23 @@ func get_gravity_strength() -> float:
 	return _gravity
 
 
+## False while stunned or dead: the player zeroes its input every frame,
+## and interact consumers (the chest) gate their actions on this.
+func controls_enabled() -> bool:
+	return _current != state_stunned and _current != state_dead
+
+
 func _physics_process(delta: float) -> void:
-	# 1. Gather input once; states read these values, never Input.
-	input_direction = Input.get_axis("move_left", "move_right")
-	_jump_just_pressed = Input.is_action_just_pressed("jump")
-	jump_just_released = Input.is_action_just_released("jump")
+	# 1. Gather input once; states read these values, never Input. Input
+	# is dead while stunned or dead, so the buffer below only decays there.
+	if controls_enabled():
+		input_direction = Input.get_axis("move_left", "move_right")
+		_jump_just_pressed = Input.is_action_just_pressed("jump")
+		jump_just_released = Input.is_action_just_released("jump")
+	else:
+		input_direction = 0.0
+		_jump_just_pressed = false
+		jump_just_released = false
 
 	# 2. Jump buffer ticks every frame regardless of state; only the press
 	# duration lives on the current grounded state.
@@ -89,13 +124,36 @@ func _physics_process(delta: float) -> void:
 
 	# 4. Transitions, evaluated on the floor state move_and_slide just
 	# produced. Grounded persists through the coyote window after a
-	# walk-off, so jump launching stays inside it.
-	if _current == state_airborne and is_on_floor():
-		sfx.play(PlayerSfx.Event.LAND)
-		_transition(state_grounded)
+	# walk-off, so jump launching stays inside it. An Airborne touchdown
+	# resolves the fall-damage tier from the drop below the flight's apex
+	# (tracked at the end of this frame); Dead matches no branch and
+	# never leaves.
+	if _current == state_stunned:
+		if not is_on_floor():
+			_transition(state_airborne)
+		elif state_stunned.expired():
+			_transition(state_grounded)
+	elif _current == state_airborne and is_on_floor():
+		var fall := global_position.y - _apex_y
+		if fall >= lethal_fall_distance:
+			sfx.play(PlayerSfx.Event.DEATH)
+			_transition(state_dead)
+		elif fall >= stun_fall_distance:
+			sfx.play(PlayerSfx.Event.HARD_LAND)
+			_transition(state_stunned)
+		else:
+			sfx.play(PlayerSfx.Event.LAND)
+			_transition(state_grounded)
 	elif _current == state_grounded and not is_on_floor() \
 			and not state_grounded.coyote_active():
 		_transition(state_airborne)
+
+	# Track the apex of the current floor leave; the landing tier above
+	# reads it before this resets it to the landing height.
+	if is_on_floor():
+		_apex_y = global_position.y
+	else:
+		_apex_y = minf(_apex_y, global_position.y)
 
 	# 5. Presentation: facing and animation intent.
 	if input_direction != 0.0:
