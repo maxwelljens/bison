@@ -7,5 +7,6 @@
 script = ExtResource("1_item")
 id = &"ember"
 name_key = "ITEM_EMBER"
+description_key = "ITEM_EMBER_DESC"
 texture = ExtResource("2_ommb8")
 color = Color(0.99607843, 0.5019608, 0.09803922, 1)

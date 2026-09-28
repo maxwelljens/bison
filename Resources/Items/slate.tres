@@ -7,6 +7,7 @@
 script = ExtResource("1_item")
 id = &"slate"
 name_key = "ITEM_SLATE"
+description_key = "ITEM_SLATE_DESC"
 texture = ExtResource("2_5qwvv")
 color = Color(0.3137255, 0.28627452, 0.27058825, 1)
 weight = 2.0

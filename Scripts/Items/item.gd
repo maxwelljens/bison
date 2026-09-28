@@ -10,6 +10,9 @@ extends Resource
 @export var id: StringName
 ## Locale key of the display name, resolved by automatic translation.
 @export var name_key: String
+## Locale key of the tooltip description, resolved by automatic
+## translation; empty hides the description line.
+@export var description_key: String = ""
 ## Icon shown in inventory slots.
 @export var texture: Texture2D
 ## Tint applied to [member texture] in inventory slots.
