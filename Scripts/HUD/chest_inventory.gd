@@ -12,12 +12,16 @@ extends NinePatchRect
 @export var grid: GridContainer
 ## Slot scene spawned per chest item.
 @export var item_scene: PackedScene
+## Hover card shown for revealed slots.
+@export var tooltip: InventoryTooltip
 
 # The chest currently displayed.
 var _chest: Chest = null
 var _slots: Array[InventoryItemView] = []
 # Slot whose reveal bar is filling, if any.
 var _head_slot: InventoryItemView = null
+# Whether this panel currently owns the shared hover card; only the# owner hides it, so the two polling panels cannot fight over it.
+var _showing_tooltip: bool = false
 
 
 ## Shows the chest's contents; null clears the panel.
@@ -52,6 +56,38 @@ func _rebuild() -> void:
 			_head_slot = slot
 	if _head_slot != null:
 		_head_slot.set_fill(_chest.slot_progress())
+
+
+func _process(_delta: float) -> void:
+	_update_tooltip()
+
+
+## Shows the hover card while the cursor rests on a revealed slot.
+## Polled every frame instead of driven by slot enter/exit signals, so
+## grid rebuilds (reveals, transfers) can never lose an active hover.
+## The card is shared with the other panel and hidden only by the
+## panel that showed it.
+func _update_tooltip() -> void:
+	if tooltip == null:
+		return
+	if not is_visible_in_tree():
+		_hide_tooltip()
+		return
+	for slot: InventoryItemView in _slots:
+		if slot.revealed and slot.item != null \
+				and Rect2(Vector2.ZERO, slot.size).has_point(
+						slot.get_local_mouse_position()):
+			tooltip.show_item(slot.item)
+			_showing_tooltip = true
+			return
+	_hide_tooltip()
+
+
+func _hide_tooltip() -> void:
+	if not _showing_tooltip:
+		return
+	_showing_tooltip = false
+	tooltip.hide_tip()
 
 
 func _add_slot(item: Item, revealed: bool) -> InventoryItemView:

@@ -13,6 +13,8 @@ extends Control
 @export var chest_inventory: ChestInventory
 ## Player-side haul strip, always visible.
 @export var player_inventory: PlayerInventory
+## Shared hover card for both panels.
+@export var tooltip: InventoryTooltip
 
 # One-shot init gate for the first _process tick.
 var _initialized: bool = false
@@ -34,6 +36,8 @@ func _on_session_opened(chest: Chest) -> void:
 
 
 func _on_session_closed() -> void:
+	if tooltip != null:
+		tooltip.hide_tip()
 	if chest_inventory == null:
 		return
 	chest_inventory.visible = false
@@ -53,3 +57,5 @@ func _init_hud() -> void:
 		chest_inventory.visible = false
 	if player_inventory != null:
 		player_inventory.refresh()
+	if tooltip != null:
+		tooltip.hide_tip()

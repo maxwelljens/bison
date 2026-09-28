@@ -6,8 +6,8 @@ extends PanelContainer
 ##
 ## Slots only accept clicks once revealed; left-click transfers the
 ## item, shift-click transfers the whole side (handled by the owner).
-## The tooltip keeps the raw Locale key so Godot's automatic
-## translation resolves it.
+## Descriptions come from the shared
+## [InventoryTooltip] card, which the owning panel feeds on hover.
 
 ## Fired when a revealed slot is left-clicked.
 signal pressed
@@ -29,7 +29,6 @@ var revealed: bool = false
 func bind(next_item: Item, is_revealed: bool) -> void:
 	item = next_item
 	revealed = is_revealed
-	tooltip_text = next_item.name_key if is_revealed and next_item != null else ""
 	if progress != null:
 		progress.visible = not is_revealed
 		progress.value = 0.0

@@ -7,20 +7,27 @@
 [ext_resource type="Script" uid="uid://d2buvrw78dwuq" path="res://Scripts/HUD/hud.gd" id="5_hud"]
 [ext_resource type="Script" uid="uid://cb1u2oxth5poc" path="res://Scripts/HUD/chest_inventory.gd" id="6_cinv"]
 [ext_resource type="Script" uid="uid://l7k5sh7qxna1" path="res://Scripts/HUD/player_inventory.gd" id="7_pinv"]
+[ext_resource type="FontFile" uid="uid://d15lahxggl4k3" path="res://Fonts/IosevkaCharonMono-Bold.ttf" id="8_ffofi"]
+[ext_resource type="Script" uid="uid://dnxwjcl8fuqcm" path="res://Scripts/HUD/inventory_tooltip.gd" id="9_tip"]
 
 [sub_resource type="AtlasTexture" id="AtlasTexture_v61m3"]
 atlas = ExtResource("4_v61m3")
 region = Rect2(272, 272, 48, 48)
 
-[node name="HUD" type="Control" unique_id=188150801 node_paths=PackedStringArray("chest_inventory", "player_inventory")]
+[sub_resource type="LabelSettings" id="LabelSettings_8pyou"]
+font = ExtResource("8_ffofi")
+font_color = Color(0.92156863, 0.85882354, 0.69803923, 1)
+
+[node name="HUD" type="Control" unique_id=188150801 node_paths=PackedStringArray("chest_inventory", "player_inventory", "tooltip")]
 layout_mode = 3
 anchors_preset = 0
 theme = ExtResource("1_4xsxb")
 script = ExtResource("5_hud")
 chest_inventory = NodePath("ChestInventory")
 player_inventory = NodePath("PlayerInventory")
+tooltip = NodePath("InventoryTooltip")
 
-[node name="ChestInventory" type="NinePatchRect" parent="." unique_id=1124244590 node_paths=PackedStringArray("grid")]
+[node name="ChestInventory" type="NinePatchRect" parent="." unique_id=1124244590 node_paths=PackedStringArray("grid", "tooltip")]
 self_modulate = Color(0.15686275, 0.15686275, 0.15686275, 1)
 texture_filter = 1
 layout_mode = 0
@@ -38,6 +45,7 @@ axis_stretch_vertical = 1
 script = ExtResource("6_cinv")
 grid = NodePath("MarginContainer/VBoxContainer/GridContainer")
 item_scene = ExtResource("3_rx5l5")
+tooltip = NodePath("../InventoryTooltip")
 
 [node name="MarginContainer" type="MarginContainer" parent="ChestInventory" unique_id=839395875]
 layout_mode = 1
@@ -59,7 +67,7 @@ layout_mode = 2
 size_flags_vertical = 3
 columns = 6
 
-[node name="PlayerInventory" type="NinePatchRect" parent="." unique_id=2002681052 node_paths=PackedStringArray("grid", "weight_label")]
+[node name="PlayerInventory" type="NinePatchRect" parent="." unique_id=2002681052 node_paths=PackedStringArray("grid", "weight_label", "tooltip")]
 self_modulate = Color(0.15686275, 0.15686275, 0.15686275, 1)
 texture_filter = 1
 layout_mode = 0
@@ -78,6 +86,7 @@ script = ExtResource("7_pinv")
 grid = NodePath("MarginContainer/VBoxContainer/GridContainer")
 weight_label = NodePath("MarginContainer/VBoxContainer/Header/Weight")
 item_scene = ExtResource("3_rx5l5")
+tooltip = NodePath("../InventoryTooltip")
 
 [node name="MarginContainer" type="MarginContainer" parent="PlayerInventory" unique_id=1558032032]
 layout_mode = 1
@@ -106,3 +115,50 @@ text = "0.0"
 layout_mode = 2
 size_flags_vertical = 3
 columns = 10
+
+[node name="InventoryTooltip" type="NinePatchRect" parent="." unique_id=391554199 node_paths=PackedStringArray("title", "body")]
+self_modulate = Color(0.19607843, 0.1882353, 0.18431373, 1)
+texture_filter = 2
+custom_maximum_size = Vector2(300, -1)
+propagate_maximum_size = true
+layout_mode = 0
+offset_right = 300.0
+offset_bottom = 128.0
+texture = ExtResource("2_rx5l5")
+patch_margin_left = 12
+patch_margin_top = 12
+patch_margin_right = 12
+patch_margin_bottom = 12
+axis_stretch_horizontal = 1
+axis_stretch_vertical = 1
+script = ExtResource("9_tip")
+title = NodePath("MarginContainer/VBoxContainer/Title")
+body = NodePath("MarginContainer/VBoxContainer/Body")
+
+[node name="MarginContainer" type="MarginContainer" parent="InventoryTooltip" unique_id=1195044828]
+layout_mode = 1
+anchors_preset = 15
+anchor_right = 1.0
+anchor_bottom = 1.0
+grow_horizontal = 2
+grow_vertical = 2
+mouse_filter = 2
+
+[node name="VBoxContainer" type="VBoxContainer" parent="InventoryTooltip/MarginContainer" unique_id=235469551]
+layout_mode = 2
+mouse_filter = 2
+
+[node name="Title" type="Label" parent="InventoryTooltip/MarginContainer/VBoxContainer" unique_id=1482302743]
+layout_mode = 2
+size_flags_horizontal = 3
+text = "Title"
+label_settings = SubResource("LabelSettings_8pyou")
+
+[node name="Body" type="RichTextLabel" parent="InventoryTooltip/MarginContainer/VBoxContainer" unique_id=2075210733]
+layout_mode = 2
+size_flags_vertical = 3
+mouse_filter = 2
+bbcode_enabled = true
+text = "Body"
+fit_content = true
+scroll_active = false

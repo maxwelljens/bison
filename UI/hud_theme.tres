@@ -1,6 +1,9 @@
 [gd_resource type="Theme" format=3 uid="uid://bensgq7jf7ndn"]
 
 [ext_resource type="FontFile" uid="uid://c7jgfu00fb2bi" path="res://Fonts/IosevkaCharonMono-Regular.ttf" id="1_3jrto"]
+[ext_resource type="FontFile" uid="uid://d15lahxggl4k3" path="res://Fonts/IosevkaCharonMono-Bold.ttf" id="2_ltron"]
+[ext_resource type="FontFile" uid="uid://ucf0ui0g0c" path="res://Fonts/IosevkaCharonMono-BoldItalic.ttf" id="3_gikq8"]
+[ext_resource type="FontFile" uid="uid://bmxhqr78jwm7g" path="res://Fonts/IosevkaCharonMono-Italic.ttf" id="4_oh3a3"]
 
 [sub_resource type="StyleBoxFlat" id="StyleBoxFlat_fxevp"]
 bg_color = Color(0.19607843, 0.1882353, 0.18431373, 1)
@@ -14,3 +17,9 @@ MarginContainer/constants/margin_left = 12
 MarginContainer/constants/margin_right = 12
 MarginContainer/constants/margin_top = 12
 PanelContainer/styles/panel = SubResource("StyleBoxFlat_fxevp")
+RichTextLabel/colors/default_color = Color(0.92156863, 0.85882354, 0.69803923, 1)
+RichTextLabel/colors/font_outline_color = Color(0.15686275, 0.15686275, 0.15686275, 1)
+RichTextLabel/fonts/bold_font = ExtResource("2_ltron")
+RichTextLabel/fonts/bold_italics_font = ExtResource("3_gikq8")
+RichTextLabel/fonts/italics_font = ExtResource("4_oh3a3")
+RichTextLabel/fonts/normal_font = ExtResource("1_3jrto")
