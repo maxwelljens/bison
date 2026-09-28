@@ -40,3 +40,31 @@ func exit() -> void:
 ## check sees this frame's floor data.
 func physics_process(_delta: float) -> void:
 	pass
+
+
+## Integrates gravity into the player's vertical velocity, clamped at
+## terminal fall speed. Shared by the airborne-phase states; single
+## edit point for gravity-related tuning behavior.
+func _apply_gravity(delta: float) -> void:
+	player.velocity.y = minf(
+		player.velocity.y + player.get_gravity_strength() * delta,
+		player.max_fall_speed)
+
+
+## Scales upward velocity down on a jump-release edge (short hop).
+## Call once per frame from a state that can be rising.
+func _apply_jump_cut() -> void:
+	if player.jump_just_released and player.velocity.y < 0.0:
+		player.velocity.y *= player.jump_cut_multiplier
+
+
+## Steers horizontal velocity toward the input target: acceleration
+## toward the run speed with input, friction decay without.
+func _steer(delta: float) -> void:
+	if player.input_direction != 0.0:
+		player.velocity.x = move_toward(
+			player.velocity.x, player.input_direction * player.move_speed,
+			player.acceleration * delta)
+	else:
+		player.velocity.x = move_toward(
+			player.velocity.x, 0.0, player.friction * delta)

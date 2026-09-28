@@ -37,8 +37,7 @@ func physics_process(delta: float) -> void:
 		_coyote_timer = coyote_time
 	else:
 		_coyote_timer -= delta
-		player.velocity.y = minf(
-			player.velocity.y + player.get_gravity_strength() * delta, player.max_fall_speed)
+		_apply_gravity(delta)
 
 	# Jump fires only when both grace windows are live: buffered press AND
 	# (on the ledge or within coyote time after leaving it).
@@ -52,15 +51,10 @@ func physics_process(delta: float) -> void:
 	# instead of stopping, so a tap gives a short hop. The launch frame's
 	# own release edge is seen here; releases on later frames land in
 	# PlayerAirborne.
-	if player.jump_just_released and player.velocity.y < 0.0:
-		player.velocity.y *= player.jump_cut_multiplier
+	_apply_jump_cut()
 
 	var direction := player.input_direction
-	if direction != 0.0:
-		player.velocity.x = move_toward(
-			player.velocity.x, direction * player.move_speed, player.acceleration * delta)
-	else:
-		player.velocity.x = move_toward(player.velocity.x, 0.0, player.friction * delta)
+	_steer(delta)
 
 	_update_intent(direction)
 	player.move_and_slide()

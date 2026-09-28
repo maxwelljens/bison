@@ -31,8 +31,9 @@ func enter(_previous: PlayerState) -> void:
 func physics_process(delta: float) -> void:
 	_remaining -= delta
 	if not player.is_on_floor():
-		player.velocity.y = minf(
-			player.velocity.y + player.get_gravity_strength() * delta, player.max_fall_speed)
-	player.velocity.x = move_toward(player.velocity.x, 0.0, player.friction * delta)
+		_apply_gravity(delta)
+	# Input is zeroed while stunned, so the steer call is a pure
+	# friction slide of the kept momentum.
+	_steer(delta)
 	intent = PlayerAnimator.Intent.STUN
 	player.move_and_slide()
