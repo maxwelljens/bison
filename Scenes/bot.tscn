@@ -10,6 +10,7 @@ size = Vector2(10, 11)
 
 [node name="Bot" type="CharacterBody2D" unique_id=181996794 node_paths=PackedStringArray("sprite")]
 script = ExtResource("1_gdc2h")
+collision_mask = 3
 jump_velocity = -180.0
 jump_release_speed = 20.0
 sprite = NodePath("Sprite2D")

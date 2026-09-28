@@ -84,6 +84,7 @@ size = Vector2(12, 11)
 
 [node name="Player" type="CharacterBody2D" unique_id=244470271 node_paths=PackedStringArray("state_grounded", "state_airborne", "state_stunned", "state_dead", "animator", "sfx")]
 script = ExtResource("1_cvnsp")
+collision_mask = 3
 move_speed = 50.0
 acceleration = 250.0
 friction = 130.0

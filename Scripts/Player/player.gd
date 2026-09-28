@@ -13,8 +13,15 @@ extends CharacterBody2D
 ## flight's apex — no health pool, DESIGN.md §5. Grace windows: the
 ## jump buffer ticks here (an input memory spanning both states),
 ## coyote time lives in [PlayerGrounded], and each state applies the
-## jump cut. All tuning is exported; scene overrides on the node take
+## jump cut. Pressing down while standing starts a drop-through: the
+## one-way tileset physics layer is masked out for a short window so
+## the player sinks through one-way platforms while solid ground keeps
+## colliding. All tuning is exported; scene overrides on the node take
 ## precedence over the defaults below.
+
+## Collision-layer bit the fg tileset's one-way platforms live on
+## (physics layer 1, project setting "One-way").
+const ONE_WAY_BIT: int = 2
 
 @export_category("Movement")
 ## Top run speed in px/s (~8 tiles/s at 16 px tiles).
@@ -41,6 +48,12 @@ extends CharacterBody2D
 ## lethal (~10 tiles).
 @export_range(0.0, 2000.0, 1.0, "suffix:px") var lethal_fall_distance: float = 160.0
 
+@export_category("Drop-Through")
+## Seconds the one-way platform bit stays off after a press-down; the
+## 11 px-tall body needs ~0.18 s to clear an 8 px-thick platform top at
+## project gravity.
+@export_range(0.05, 1.0, 0.05, "suffix:s") var drop_through_time: float = 0.25
+
 @export_category("State Machine")
 ## Grounded state node: owns coyote time, jump launching, ground intents.
 @export var state_grounded: PlayerGrounded
@@ -59,6 +72,9 @@ extends CharacterBody2D
 var input_direction: float = 0.0
 ## Jump release edge for this frame; states apply the jump cut from it.
 var jump_just_released: bool = false
+## Press-down edge for this frame; [PlayerGrounded] starts a drop-through
+## from it while the player stands on a one-way platform.
+var down_just_pressed: bool = false
 ## Set by a state when a jump launches this frame; the player consumes
 ## it (playing the jump sound) and clears it every frame.
 var jumped_this_frame: bool = false
@@ -74,8 +90,12 @@ var _current: PlayerState
 # tiers measure the drop from here.
 var _apex_y: float = 0.0
 
+var _full_collision_mask: int = 0
+var _drop_timer: float = 0.0
+
 
 func _ready() -> void:
+	_full_collision_mask = collision_mask
 	state_grounded.setup(self)
 	state_airborne.setup(self)
 	state_stunned.setup(self)
@@ -96,17 +116,36 @@ func controls_enabled() -> bool:
 	return _current != state_stunned and _current != state_dead
 
 
+## Starts a drop-through: for [member drop_through_time] seconds the
+## one-way platform bit is removed from the collision mask so the player
+## sinks through one-way platforms. Solid tiles sit on another layer and
+## keep colliding, so over regular floor this is a harmless no-op.
+func start_drop_through() -> void:
+	_drop_timer = drop_through_time
+	collision_mask = _full_collision_mask & ~ONE_WAY_BIT
+
+
 func _physics_process(delta: float) -> void:
+	# 0. Maintain the drop-through mask; start_drop_through clears the bit
+	# for the same frame, this keeps it cleared while the timer runs.
+	if _drop_timer > 0.0:
+		_drop_timer -= delta
+		collision_mask = _full_collision_mask & ~ONE_WAY_BIT
+	else:
+		collision_mask = _full_collision_mask
+
 	# 1. Gather input once; states read these values, never Input. Input
 	# is dead while stunned or dead, so the buffer below only decays there.
 	if controls_enabled():
 		input_direction = Input.get_axis("move_left", "move_right")
 		_jump_just_pressed = Input.is_action_just_pressed("jump")
 		jump_just_released = Input.is_action_just_released("jump")
+		down_just_pressed = Input.is_action_just_pressed("move_down")
 	else:
 		input_direction = 0.0
 		_jump_just_pressed = false
 		jump_just_released = false
+		down_just_pressed = false
 
 	# 2. Jump buffer ticks every frame regardless of state; only the press
 	# duration lives on the current grounded state.
