@@ -15,9 +15,6 @@ extends NinePatchRect
 ## Hover card shown for carried slots.
 @export var tooltip: InventoryTooltip
 
-# Whether this panel currently owns the shared hover card; only the# owner hides it, so the two polling panels cannot fight over it.
-var _showing_tooltip: bool = false
-
 
 ## Rebuilds the slots and the weight readout from the haul.
 func refresh() -> void:
@@ -50,32 +47,23 @@ func _process(_delta: float) -> void:
 
 ## Shows the hover card while the cursor rests on a revealed slot.
 ## Polled every frame instead of driven by slot enter/exit signals, so
-## rebuilds (transfers) can never lose an active hover. The card is
-## shared with the other panel and hidden only by the panel that
-## showed it.
+## rebuilds (transfers) can never lose an active hover. The card
+## tracks its owner internally; hiding goes through
+## [method InventoryTooltip.hide_for], a no-op for non-owners.
 func _update_tooltip() -> void:
 	if tooltip == null or grid == null:
 		return
 	if not is_visible_in_tree():
-		_hide_tooltip()
+		tooltip.hide_for(self)
 		return
 	for child: Node in grid.get_children():
 		var slot := child as InventoryItemView
 		if slot == null or not slot.revealed or slot.item == null:
 			continue
-		if Rect2(Vector2.ZERO, slot.size).has_point(
-				slot.get_local_mouse_position()):
-			tooltip.show_item(slot.item)
-			_showing_tooltip = true
+		if tooltip.hovered_slot(slot):
+			tooltip.show_item(slot.item, self)
 			return
-	_hide_tooltip()
-
-
-func _hide_tooltip() -> void:
-	if not _showing_tooltip:
-		return
-	_showing_tooltip = false
-	tooltip.hide_tip()
+	tooltip.hide_for(self)
 
 
 func _on_slot_pressed(item: Item) -> void:
