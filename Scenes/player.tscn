@@ -135,7 +135,7 @@ shape = SubResource("RectangleShape2D_fmu24")
 debug_color = Color(0, 0.640254, 0.35733178, 0.41960785)
 
 [node name="Camera2D" type="Camera2D" parent="." unique_id=1759240348]
-zoom = Vector2(1.25, 1.25)
+zoom = Vector2(1.5, 1.5)
 position_smoothing_enabled = true
 drag_horizontal_enabled = true
 drag_vertical_enabled = true
