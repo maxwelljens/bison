@@ -200,14 +200,14 @@ texture = ExtResource("1_1rs5s")
 18:7/0/physics_layer_0/polygon_0/points = PackedVector2Array(-8, -8, 8, -8, 8, 8, -8, 8)
 19:7/0 = 0
 0:8/0 = 0
-0:8/0/physics_layer_0/polygon_0/points = PackedVector2Array(-8, -8, 8, -8, 8, 0, -8, 0)
-0:8/0/physics_layer_0/polygon_0/one_way = true
+0:8/0/physics_layer_1/polygon_0/points = PackedVector2Array(-8, -8, 8, -8, 8, 0, -8, 0)
+0:8/0/physics_layer_1/polygon_0/one_way = true
 1:8/0 = 0
-1:8/0/physics_layer_0/polygon_0/points = PackedVector2Array(-8, -8, 8, -8, 8, 0, -8, 0)
-1:8/0/physics_layer_0/polygon_0/one_way = true
+1:8/0/physics_layer_1/polygon_0/points = PackedVector2Array(-8, -8, 8, -8, 8, 0, -8, 0)
+1:8/0/physics_layer_1/polygon_0/one_way = true
 2:8/0 = 0
-2:8/0/physics_layer_0/polygon_0/points = PackedVector2Array(-8, -8, 8, -8, 8, 0, -8, 0)
-2:8/0/physics_layer_0/polygon_0/one_way = true
+2:8/0/physics_layer_1/polygon_0/points = PackedVector2Array(-8, -8, 8, -8, 8, 0, -8, 0)
+2:8/0/physics_layer_1/polygon_0/one_way = true
 3:8/0 = 0
 4:8/0 = 0
 5:8/0 = 0
@@ -551,5 +551,6 @@ texture = ExtResource("1_1rs5s")
 
 [resource]
 physics_layer_0/collision_layer = 1
+physics_layer_1/collision_layer = 2
 terrain_set_0/mode = 0
 sources/1 = SubResource("TileSetAtlasSource_00vsl")
