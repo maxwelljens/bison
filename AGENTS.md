@@ -72,25 +72,32 @@ commit them. The warren (hidden burrow system) is the colony home.
 	`texture_open` ships unassigned (open-chest art pending); texture
 	slot defaults keep the sprite's own texture until assigned.
   - `Player` (instance of `Scenes/player.tscn`) with children:
-    `StateMachine` (holds the `Grounded`/`Airborne` state nodes),
-    `Animator`, `Sfx`, `AnimatedSprite2D` (SpriteFrames:
-    idle/jump/run/stop), `CollisionShape2D` (RectangleShape2D 12×11 at
-    (0, 2.5)), and `Camera2D` (follows the player for free by being a
-    child).
-- `Scripts/Player/` — player-driven two-state machine: the player gathers
-  input once per frame, the current state (`grounded.gd` / `airborne.gd`)
-  runs the frame's physics and ends with `move_and_slide()`, transitions
+    `StateMachine` (holds the `Grounded`/`Airborne`/`Stunned`/`Dead`
+    state nodes), `Animator`, `Sfx`, `AnimatedSprite2D` (SpriteFrames:
+    idle/jump/run/stop/stun/dead), `CollisionShape2D` (RectangleShape2D
+    12×11 at (0, 2.5)), and `Camera2D` (follows the player for free by
+    being a child).
+- `Scripts/Player/` — player-driven state machine (`grounded.gd`,
+  `airborne.gd`, `stunned.gd`, `dead.gd`): the player gathers input
+  once per frame (zeroed while stunned/dead), the current state runs
+  the frame's physics and ends with `move_and_slide()`, transitions
   are evaluated on that fresh floor state (Grounded exits only when the
   floor is lost AND its coyote window expired, so jump launching stays
-  inside it), and states emit animation intents (IDLE/RUN/STOP/AIR) that
-  `player_animator.gd` maps onto the SpriteFrames. `player_state.gd` is
-  the base class (`setup`/`enter`/`exit`/`physics_process`).
+  inside it), and states emit animation intents
+  (IDLE/RUN/STOP/AIR/STUN/DEAD) that `player_animator.gd` maps onto the
+  SpriteFrames. Fall damage: the drop below the flight's apex resolves
+  on the Airborne touchdown edge into safe / stun / lethal tiers
+  (`stun_fall_distance`, `lethal_fall_distance`, no health pool); stun
+  is a timed lockout with a friction slide, death freezes the body and
+  closes any open loot session. `player_state.gd` is the base class
+  (`setup`/`enter`/`exit`/`physics_process`).
 - Sound effects: `player_sfx.gd` (`PlayerSfx`) sits under the player
   like the Animator and never touches audio from the states. The player
   forwards the state intent (`set_intent`), floor state (`set_grounded`)
   and events: Grounded sets `player.jumped_this_frame` at jump launch
-  (the player plays JUMP and clears it), and the player plays LAND on
-  the Airborne→Grounded transition. Footsteps tick while RUN + grounded
+  (the player plays JUMP and clears it), and the player plays LAND,
+  HARD_LAND or DEATH by fall tier on the Airborne touchdown edge.
+  Footsteps tick while RUN + grounded
   (fixed `footstep_interval`); STOP plays on its one-frame intent edge.
   Sounds play through a code-created round-robin pool of
   `voice_count` `AudioStreamPlayer`s (overlaps never cut). New events
@@ -146,8 +153,8 @@ commit them. The warren (hidden burrow system) is the colony home.
   TileMapLayer with the group.
   Awaiting re-verification.
 - Known gaps (intentionally out of scope so far): no camera limits, no
-  UI/health/death, only the Grounded/Airborne states exist so far (no
-  fall-specific art — AIR maps to the jump frames).
+  death UI/permadeath flow (DESIGN.md §8 unwired), no fall-specific art
+  (AIR still maps to the jump frames).
 
 ## Coding directives (MUST follow)
 
@@ -259,7 +266,8 @@ Verified facts about Godot 4.7.x as used in this project (probed 2026-09-25).
 
 Script defaults (`Scripts/Player/player.gd`; `coyote_time`,
 `jump_buffer_time` and `run_min_speed` live on `PlayerGrounded` in
-`Scripts/Player/grounded.gd`, `stop_hold_time` on
+`Scripts/Player/grounded.gd`, `stun_time` on `PlayerStunned` in
+`Scripts/Player/stunned.gd`, `stop_hold_time` on
 `Scripts/Player/player_animator.gd`, `voice_count`, `footstep_interval`
 and `volume_db` on `Scripts/Player/player_sfx.gd`); scene overrides on
 the Player node take precedence.
@@ -274,7 +282,10 @@ the Player node take precedence.
 | `jump_buffer_time` | 0.1 s | jump pressed this long before landing fires on touchdown |
 | `jump_cut_multiplier` | 0.5 | upward velocity kept when jump is released early (short hop) |
 | `max_fall_speed` | 600.0 px/s | terminal velocity clamp |
+| `stun_fall_distance` | 64.0 px | drop below the flight's apex at/above which a landing stuns (~4 tiles) |
+| `lethal_fall_distance` | 160.0 px | drop below the flight's apex at/above which a landing is lethal (~10 tiles) |
 | `run_min_speed` (`PlayerGrounded`) | 10.0 px/s | releasing move input at/above this speed shows the stop animation |
+| `stun_time` (`PlayerStunned`) | 0.75 s | control lockout after a hard landing (momentum slides under friction) |
 | `stop_hold_time` (`PlayerAnimator`) | 0.2 s | how long the stop one-shot holds before idle resumes |
 | `footstep_interval` (`PlayerSfx`) | 0.3 s | seconds between footsteps while running |
 | `voice_count` (`PlayerSfx`) | 4 | pooled voices; oldest is reused beyond this many overlapping sounds |

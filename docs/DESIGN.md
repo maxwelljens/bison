@@ -102,6 +102,11 @@ unless explicitly reopened. Open/deferred items are marked **[OPEN]**.
 - **Geometry is interlocked:** horizontal biome rings spreading outward
   from the warren **plus vertical depth tiers** — deeper is richer and
   more lethal.
+- **Falls hurt, without a health pool** (§5 stands): landing tiers
+  resolve from the drop below the flight's apex — safe landings do
+  nothing, hard landings stun (momentum slide, brief control lockout),
+  lethal drops kill outright. Cargo-weight scaling is deferred to the
+  weight increment (§4).
 - **No map, no compass, no navigation aids:** navigation is a skill;
   landmarks and player knowledge carry it. The warren entrance is the
   trip's anchor (leave from there, return there by 21:00).
