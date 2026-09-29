@@ -4,8 +4,9 @@ extends Node
 ##
 ## Follows [PathData] waypoints by steering a [PlatformerBot] through them:
 ## runs along the ground, fires matched ballistic impulses at jumps, steers
-## mid-air (gated by the pathfinder's drift envelope), and pulses drop-through
-## at one-way platforms. Click-to-move and a stuck watchdog that repaths.
+## mid-air (gated by the pathfinder's drift envelope), pulses drop-through
+## at one-way platforms, and climbs ladders (grab, climb, top out or step
+## off). Click-to-move and a stuck watchdog that repaths.
 
 ## The body being driven.
 @export var bot: PlatformerBot
@@ -31,6 +32,8 @@ var _matched_jump: bool = false
 var _stuck_frames: int = 0
 var _last_position: Vector2 = Vector2.ZERO
 var _goal_world: Vector2 = Vector2.ZERO
+# [DEBUG-ladder] last ladder trace line, for change-only printing.
+var _last_trace: String = ""
 
 
 func _unhandled_input(event: InputEvent) -> void:
@@ -47,7 +50,8 @@ func move_to(world: Vector2) -> void:
 	if bot == null or pathfinder == null:
 		return
 	var jump := PlatformerJumpProfile.new(
-		bot.jump_velocity, bot.get_gravity_strength(), bot.move_speed, float(pathfinder.get_cell_size()))
+		bot.jump_velocity, bot.get_gravity_strength(), bot.move_speed,
+		float(pathfinder.get_cell_size()), bot.climb_speed)
 	_path = pathfinder.find_path(bot.global_position, world, jump)
 	_index = 0
 	_launched = false
@@ -56,6 +60,10 @@ func move_to(world: Vector2) -> void:
 	_matched_jump = false
 	_stuck_frames = 0
 	_last_position = bot.global_position
+	var kinds := ""
+	for waypoint in _path.waypoints:
+		kinds += "%s%s " % [PathWaypoint.Kind.keys()[waypoint.kind], waypoint.cell]
+	print("[DEBUG-ladder] path found=%s %s" % [_path.found, kinds])
 
 
 func _physics_process(_delta: float) -> void:
@@ -66,6 +74,9 @@ func _physics_process(_delta: float) -> void:
 		return
 	_watch_stuck()
 	var waypoint := _path.waypoints[_index]
+	if bot.is_climbing() and waypoint.kind != PathWaypoint.Kind.CLIMB:
+		if not _leave_ladder_for(waypoint):
+			return
 	match waypoint.kind:
 		PathWaypoint.Kind.WALK:
 			_run_toward(waypoint.world)
@@ -94,7 +105,10 @@ func _physics_process(_delta: float) -> void:
 					if not _matched_jump:
 						past_apex = past_apex or bot.global_position.y <= waypoint.apex_world.y + apex_tolerance
 					bot.input_jump = not past_apex
-				if _saw_air and bot.is_on_floor():
+				bot.input_up = _next_is_climb()
+				if _next_is_climb() and bot.is_climbing():
+					_advance()
+				elif _saw_air and bot.is_on_floor():
 					_advance()
 		PathWaypoint.Kind.LAND:
 			_steer_airborne(waypoint.world)
@@ -106,22 +120,142 @@ func _physics_process(_delta: float) -> void:
 			if not _dropping:
 				_dropping = true
 				bot.drop_through()
-				bot.input_down = true
 			_air_transition(waypoint)
 		PathWaypoint.Kind.CLIMB:
-			# Climbing execution arrives with the bot ladder slice; drop the
-			# path for now instead of grinding the stuck watchdog on it.
-			_path = null
+			_climb_toward(waypoint)
+
+
+## Ladder travel: grabs the chain on the first contact (held up, or held
+## down for a descend grab from a landing above), then climbs toward the
+## waypoint's height and advances once within reach.
+func _climb_toward(waypoint: PathWaypoint) -> void:
+	bot.input_jump = false
+	if not bot.is_climbing():
+		bot.input_up = not _is_descend_grab(waypoint)
+		bot.input_down = not bot.input_up
+		_steer_airborne(waypoint.world)
+		_trace_ladder("grab_phase wp=%s%s descend=%d" % [
+			PathWaypoint.Kind.keys()[waypoint.kind], waypoint.cell,
+			int(_is_descend_grab(waypoint))])
+		return
+	var dy := waypoint.world.y - bot.global_position.y
+	bot.input_up = dy < -reach_tolerance
+	bot.input_down = dy > reach_tolerance
+	bot.input_left = false
+	bot.input_right = false
+	_trace_ladder("travel wp=%s%s dy=%.2f up=%d dn=%d" % [
+		PathWaypoint.Kind.keys()[waypoint.kind], waypoint.cell, dy,
+		int(bot.input_up), int(bot.input_down)])
+	if absf(dy) <= reach_tolerance:
+		_advance()
+
+
+## Drives the exit the next waypoint needs while the bot is still on the
+## ladder: top out (hold up), shimmy off toward a crossing (steer x), drop
+## off the chain base (hold down), jump off (fire the launch), or detach
+## into a fall (steer toward the landing). Returns true once the bot has
+## left the ladder and the waypoint's own arm can run.
+func _leave_ladder_for(waypoint: PathWaypoint) -> bool:
+	bot.input_jump = false
+	bot.input_up = false
+	bot.input_down = false
+	bot.input_left = false
+	bot.input_right = false
+	var branch := ""
+	var rung := _exit_rung()
+	match waypoint.kind:
+		PathWaypoint.Kind.JUMP:
+			branch = "jump_off"
+			var impulse := _matched_impulse(waypoint.world, _next_target(waypoint))
+			_matched_jump = impulse > 0.0
+			bot.pending_jump_impulse = impulse
+			bot.input_jump = true
+			_launched = true
+			_saw_air = false
+		PathWaypoint.Kind.WALK:
+			if waypoint.cell.x != rung.x:
+				branch = "shimmy"
+				_step_off_sideways(waypoint, rung)
+			elif waypoint.cell.y < rung.y:
+				branch = "top_out"
+				bot.input_up = true
+			else:
+				branch = "base_drop"
+				bot.input_down = true
+		_:
+			branch = "fall_off"
+			if not LadderMap.is_ladder_cell(bot.tilemap, rung + Vector2i.DOWN):
+				bot.input_down = true
+			else:
+				var landing := _next_target(waypoint)
+				if absf(landing.x - bot.global_position.x) > reach_tolerance:
+					_steer_x(landing)
+				elif bot.test_move(bot.global_transform, Vector2(-2.0, 0.0)):
+					bot.input_right = true
+				else:
+					bot.input_left = true
+	_trace_ladder("exit wp=%s%s rung=%s branch=%s" % [
+		PathWaypoint.Kind.keys()[waypoint.kind], waypoint.cell, rung, branch])
+	return not bot.is_climbing()
+
+
+## The rung an exit leaves from: the previous CLIMB waypoint's cell. Path
+## data is immutable, unlike the bot's live centre cell, which straddles
+## cell boundaries at the chain top and flips the exit branch per frame.
+func _exit_rung() -> Vector2i:
+	if _index > 0 and _path.waypoints[_index - 1].kind == PathWaypoint.Kind.CLIMB:
+		return _path.waypoints[_index - 1].cell
+	return bot.ladder_rung
+
+
+## Sideways step-off toward [param waypoint] from [param rung]: a crossing
+## above the rung is reached by rising to its exit surface first, then
+## shimmying out; foot-height crossings shimmy out immediately.
+func _step_off_sideways(waypoint: PathWaypoint, rung: Vector2i) -> void:
+	if waypoint.cell.y < rung.y:
+		var plane := LadderMap.cell_bottom_y(bot.tilemap, waypoint.cell)
+		var feet: float = bot.collision_rect_global().end.y
+		if feet > plane + 1.0:
+			bot.input_up = true
+			_trace_ladder("rise_to_exit plane=%.2f feet=%.2f" % [plane, feet])
+			return
+		_trace_ladder("at_exit plane=%.2f feet=%.2f" % [plane, feet])
+	_steer_x(waypoint.world)
+
+
+## True when the waypoint after the current one starts a climb (a catch).
+func _next_is_climb() -> bool:
+	return _index + 1 < _path.waypoints.size() \
+			and _path.waypoints[_index + 1].kind == PathWaypoint.Kind.CLIMB
+
+
+## [DEBUG-ladder] prints ladder decisions on change only.
+func _trace_ladder(text: String) -> void:
+	if text != _last_trace:
+		_last_trace = text
+		print("[DEBUG-ladder] ", text)
+
+
+## True when this climb is entered by descending from a landing two cells
+## above the first rung (the descend grab holds down instead of up).
+func _is_descend_grab(waypoint: PathWaypoint) -> bool:
+	if _index == 0:
+		return false
+	return _path.waypoints[_index - 1].cell == waypoint.cell + 2 * Vector2i.UP
 
 
 ## Unpowered air move: release jump, steer toward the next waypoint, and
 ## advance once the floor is regained after having been airborne.
 func _air_transition(waypoint: PathWaypoint) -> void:
 	bot.input_jump = false
+	bot.input_up = _next_is_climb()
+	bot.input_down = false
 	_steer_airborne(_next_target(waypoint))
 	if not bot.is_on_floor():
 		_saw_air = true
-	if _saw_air and bot.is_on_floor():
+	if _next_is_climb() and bot.is_climbing():
+		_advance()
+	elif _saw_air and bot.is_on_floor():
 		_advance()
 
 
@@ -129,7 +263,13 @@ func _air_transition(waypoint: PathWaypoint) -> void:
 ## [member reach_tolerance].
 func _run_toward(target: Vector2) -> void:
 	bot.input_jump = false
+	bot.input_up = false
 	bot.input_down = false
+	_steer_x(target)
+
+
+## Horizontal steering only; leaves the vertical and grab inputs alone.
+func _steer_x(target: Vector2) -> void:
 	var dx := target.x - bot.global_position.x
 	bot.input_left = dx < -reach_tolerance
 	bot.input_right = dx > reach_tolerance
@@ -227,4 +367,5 @@ func _release_inputs() -> void:
 	bot.input_left = false
 	bot.input_right = false
 	bot.input_jump = false
+	bot.input_up = false
 	bot.input_down = false
