@@ -145,8 +145,7 @@ commit them. The warren (hidden burrow system) is the colony home.
   (`z_index` only).
   `Scripts/Tilemap/ladder_map.gd` (`LadderMap`) is the single query API
   (is-ladder, run extents, cell edges, standable tops) used by the
-  player and by the grid and pathfinder now; bot climbing lands in a
-  later slice.
+  player, the grid, the pathfinder and the bot.
 - Scene-level tuning overrides on the Player node (user-tuned in the
   Inspector; the scene is the source of truth, currently
   `move_speed = 50.0`, `jump_velocity = -150.0`). Script defaults differ
@@ -157,8 +156,8 @@ commit them. The warren (hidden burrow system) is the colony home.
   preview (both draw in the editor and in-game) for visual verification.
   Solver (`platformer_pathfinder.gd`) landed and probe-verified. Bot
   (`platformer_bot.gd`) + follower (`bot_path_follower.gd`) landed: own
-  movement, typed-waypoint execution, click-to-move (LMB), stuck-watchdog
-  repath. Feedback round 1 fixed: real jumps over gaps (parity applied to
+  movement (including a ladder mode mirroring the player's climbs),
+  typed-waypoint execution, click-to-move (LMB), stuck-watchdog repath. Feedback round 1 fixed: real jumps over gaps (parity applied to
   all air moves), air drift guard (stripe check for columns beside arcs),
   exact jump height (full cut at the path's apex), jump launch position
   check (x+y), and fall-throttle semantics (`fall_threshold` counts fall
@@ -204,7 +203,18 @@ commit them. The warren (hidden burrow system) is the colony home.
   Off the chain: step-offs onto crossings beside a rung or the chain-base
   floor, and drop/jump edges that reuse the airborne lattice.
   `GridDebugDraw` tints ladder cells (`show_ladder`/`ladder_color`). The
-  follower drops CLIMB paths for now; bot climbing is the next slice.
+  follower executes CLIMB waypoints end to end: held-intent grabs (in
+  place, descend grabs and real mid-air catches on the first rung
+  touched), climbs toward each rung, and leaves at the route's explicit
+  exit cell (top-out holds up, base drop holds down, foot-height
+  crossings shimmy out, higher crossings rise until the feet reach the
+  exit surface). Exit decisions come from the route's waypoint cells
+  only (the bot's live centre cell straddles cell boundaries at the
+  chain top and flips branches per frame), and mid-chain falls are
+  only routed where a side is open to shimmy off. Climb exits carry a walk waypoint at the stand/step-off cell
+  so run compression cannot swallow it, catches replace the landing
+  marker with the catch cell's CLIMB, and jump-offs keep the matched
+  impulse sizing.
   Awaiting re-verification.
 - Known gaps (intentionally out of scope so far): no camera limits, no
   death UI/permadeath flow (DESIGN.md §8 unwired), no fall-specific art
