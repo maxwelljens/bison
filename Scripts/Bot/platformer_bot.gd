@@ -82,7 +82,6 @@ var _tilemap_resolved: bool = false
 
 func _ready() -> void:
 	_full_collision_mask = collision_mask
-	print("[DEBUG-ladder] bot ready (static-exits-v1)")
 
 
 ## Gravity in px/s², for ballistic math in the follower.
@@ -140,9 +139,6 @@ func try_enter_ladder(up: bool) -> bool:
 	_column_x = tilemap.to_global(tilemap.map_to_local(ladder_rung)).x
 	velocity = Vector2.ZERO
 	_climbing = true
-	print("[DEBUG-ladder] grab rung=%s top=%s stop=%.2f standable=%d bottom=%.2f" % [
-		ladder_rung, LadderMap.run_top_cell(tilemap, ladder_rung), _stop_y,
-		int(_stop_standable), _run_bottom_y])
 	return true
 
 
@@ -244,7 +240,6 @@ func _climb_physics(delta: float, jump_pressed: bool) -> void:
 		velocity.y = -pending_jump_impulse if pending_jump_impulse > 0.0 else jump_velocity
 		pending_jump_impulse = 0.0
 		_climbing = false
-		print("[DEBUG-ladder] jump_off vy=%.1f" % velocity.y)
 		move_and_slide()
 		return
 	var vertical := 0.0
@@ -266,25 +261,16 @@ func _climb_physics(delta: float, jump_pressed: bool) -> void:
 	if absf(global_position.x - _column_x) > half_tile:
 		velocity.y = 0.0
 		_climbing = false
-		print("[DEBUG-ladder] shimmy_off x=%.2f column=%.2f" % [global_position.x, _column_x])
 		return
 	var slack := climb_speed * delta
 	var feet_y := collision_rect_global().end.y
-	if feet_y > _stop_y - 8.0 and feet_y < _stop_y + 28.0:
-		print("[DEBUG-ladder] climb y=%.2f feet=%.2f stop=%.2f standable=%d v=%.0f up=%d dn=%d lf=%d rt=%d" % [
-			global_position.y, feet_y, _stop_y, int(_stop_standable), vertical,
-			int(input_up), int(input_down), int(input_left), int(input_right)])
 	if vertical > 0.0 and feet_y <= _stop_y + slack:
 		global_position.y += _stop_y - feet_y
 		velocity.y = 0.0
-		print("[DEBUG-ladder] clamp feet=%.2f stop=%.2f standable=%d" % [
-			feet_y, _stop_y, int(_stop_standable)])
 		if _stop_standable:
 			_climbing = false
-			print("[DEBUG-ladder] top_out y=%.2f" % global_position.y)
 	elif vertical < 0.0 and feet_y >= _run_bottom_y - slack:
 		_climbing = false
-		print("[DEBUG-ladder] bottom_off feet=%.2f bottom=%.2f" % [feet_y, _run_bottom_y])
 
 
 ## Ladder cells for a grab attempt: the cell holding the body's centre, plus

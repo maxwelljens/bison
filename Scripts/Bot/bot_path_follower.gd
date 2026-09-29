@@ -29,11 +29,11 @@ var _launched: bool = false
 var _saw_air: bool = false
 var _dropping: bool = false
 var _matched_jump: bool = false
+# Shimmy side committed while letting go of the ladder (-1 left, +1 right).
+var _nudge_side: int = 0
 var _stuck_frames: int = 0
 var _last_position: Vector2 = Vector2.ZERO
 var _goal_world: Vector2 = Vector2.ZERO
-# [DEBUG-ladder] last ladder trace line, for change-only printing.
-var _last_trace: String = ""
 
 
 func _unhandled_input(event: InputEvent) -> void:
@@ -58,12 +58,9 @@ func move_to(world: Vector2) -> void:
 	_saw_air = false
 	_dropping = false
 	_matched_jump = false
+	_nudge_side = 0
 	_stuck_frames = 0
 	_last_position = bot.global_position
-	var kinds := ""
-	for waypoint in _path.waypoints:
-		kinds += "%s%s " % [PathWaypoint.Kind.keys()[waypoint.kind], waypoint.cell]
-	print("[DEBUG-ladder] path found=%s %s" % [_path.found, kinds])
 
 
 func _physics_process(_delta: float) -> void:
@@ -134,18 +131,12 @@ func _climb_toward(waypoint: PathWaypoint) -> void:
 		bot.input_up = not _is_descend_grab(waypoint)
 		bot.input_down = not bot.input_up
 		_steer_airborne(waypoint.world)
-		_trace_ladder("grab_phase wp=%s%s descend=%d" % [
-			PathWaypoint.Kind.keys()[waypoint.kind], waypoint.cell,
-			int(_is_descend_grab(waypoint))])
 		return
 	var dy := waypoint.world.y - bot.global_position.y
 	bot.input_up = dy < -reach_tolerance
 	bot.input_down = dy > reach_tolerance
 	bot.input_left = false
 	bot.input_right = false
-	_trace_ladder("travel wp=%s%s dy=%.2f up=%d dn=%d" % [
-		PathWaypoint.Kind.keys()[waypoint.kind], waypoint.cell, dy,
-		int(bot.input_up), int(bot.input_down)])
 	if absf(dy) <= reach_tolerance:
 		_advance()
 
@@ -161,11 +152,9 @@ func _leave_ladder_for(waypoint: PathWaypoint) -> bool:
 	bot.input_down = false
 	bot.input_left = false
 	bot.input_right = false
-	var branch := ""
 	var rung := _exit_rung()
 	match waypoint.kind:
 		PathWaypoint.Kind.JUMP:
-			branch = "jump_off"
 			var impulse := _matched_impulse(waypoint.world, _next_target(waypoint))
 			_matched_jump = impulse > 0.0
 			bot.pending_jump_impulse = impulse
@@ -174,28 +163,28 @@ func _leave_ladder_for(waypoint: PathWaypoint) -> bool:
 			_saw_air = false
 		PathWaypoint.Kind.WALK:
 			if waypoint.cell.x != rung.x:
-				branch = "shimmy"
 				_step_off_sideways(waypoint, rung)
 			elif waypoint.cell.y < rung.y:
-				branch = "top_out"
 				bot.input_up = true
 			else:
-				branch = "base_drop"
 				bot.input_down = true
 		_:
-			branch = "fall_off"
 			if not LadderMap.is_ladder_cell(bot.tilemap, rung + Vector2i.DOWN):
 				bot.input_down = true
 			else:
-				var landing := _next_target(waypoint)
-				if absf(landing.x - bot.global_position.x) > reach_tolerance:
-					_steer_x(landing)
-				elif bot.test_move(bot.global_transform, Vector2(-2.0, 0.0)):
-					bot.input_right = true
-				else:
-					bot.input_left = true
-	_trace_ladder("exit wp=%s%s rung=%s branch=%s" % [
-		PathWaypoint.Kind.keys()[waypoint.kind], waypoint.cell, rung, branch])
+				# Letting go needs a shimmy past the rung tile, so commit to one
+				# side and hold it; steering toward a target in the column band
+				# would oscillate inside the reach deadzone and never detach.
+				if _nudge_side == 0:
+					var landing := _next_target(waypoint)
+					if absf(landing.x - bot.global_position.x) > reach_tolerance:
+						_nudge_side = -1 if landing.x < bot.global_position.x else 1
+					elif bot.test_move(bot.global_transform, Vector2(-2.0, 0.0)):
+						_nudge_side = 1
+					else:
+						_nudge_side = -1
+				bot.input_left = _nudge_side < 0
+				bot.input_right = _nudge_side > 0
 	return not bot.is_climbing()
 
 
@@ -214,12 +203,9 @@ func _exit_rung() -> Vector2i:
 func _step_off_sideways(waypoint: PathWaypoint, rung: Vector2i) -> void:
 	if waypoint.cell.y < rung.y:
 		var plane := LadderMap.cell_bottom_y(bot.tilemap, waypoint.cell)
-		var feet: float = bot.collision_rect_global().end.y
-		if feet > plane + 1.0:
+		if bot.collision_rect_global().end.y > plane + 1.0:
 			bot.input_up = true
-			_trace_ladder("rise_to_exit plane=%.2f feet=%.2f" % [plane, feet])
 			return
-		_trace_ladder("at_exit plane=%.2f feet=%.2f" % [plane, feet])
 	_steer_x(waypoint.world)
 
 
@@ -227,13 +213,6 @@ func _step_off_sideways(waypoint: PathWaypoint, rung: Vector2i) -> void:
 func _next_is_climb() -> bool:
 	return _index + 1 < _path.waypoints.size() \
 			and _path.waypoints[_index + 1].kind == PathWaypoint.Kind.CLIMB
-
-
-## [DEBUG-ladder] prints ladder decisions on change only.
-func _trace_ladder(text: String) -> void:
-	if text != _last_trace:
-		_last_trace = text
-		print("[DEBUG-ladder] ", text)
 
 
 ## True when this climb is entered by descending from a landing two cells
@@ -347,6 +326,7 @@ func _advance() -> void:
 	_saw_air = false
 	_dropping = false
 	_matched_jump = false
+	_nudge_side = 0
 	_stuck_frames = 0
 
 
