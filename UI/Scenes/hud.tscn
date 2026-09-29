@@ -117,6 +117,7 @@ size_flags_vertical = 3
 columns = 10
 
 [node name="InventoryTooltip" type="NinePatchRect" parent="." unique_id=391554199 node_paths=PackedStringArray("title", "body")]
+visible = false
 self_modulate = Color(0.19607843, 0.1882353, 0.18431373, 1)
 texture_filter = 2
 custom_maximum_size = Vector2(300, -1)
