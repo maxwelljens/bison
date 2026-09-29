@@ -1,0 +1,16 @@
+{
+  "mcpServers": {
+    "codemap": {
+      "args": [
+        "--project-root",
+        "/media/Development/bison",
+        "mcp",
+        "--configured-version",
+        "4.5.1",
+        "--integration",
+        "claude-setup"
+      ],
+      "command": "/home/mjensen/.local/bin/codemap"
+    }
+  }
+}
