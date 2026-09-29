@@ -145,7 +145,8 @@ commit them. The warren (hidden burrow system) is the colony home.
   (`z_index` only).
   `Scripts/Tilemap/ladder_map.gd` (`LadderMap`) is the single query API
   (is-ladder, run extents, cell edges, standable tops) used by the
-  player now and by the grid/pathfinder/bot in later slices.
+  player and by the grid and pathfinder now; bot climbing lands in a
+  later slice.
 - Scene-level tuning overrides on the Player node (user-tuned in the
   Inspector; the scene is the source of truth, currently
   `move_speed = 50.0`, `jump_velocity = -150.0`). Script defaults differ
@@ -191,6 +192,19 @@ commit them. The warren (hidden burrow system) is the colony home.
   preview. `Levels/test_level.tscn` itself needs no Bot wiring; dropping
   `bot.tscn` into any level works if that level tags exactly one
   TileMapLayer with the group.
+  Ladder slice: the grid bakes a per-cell ladder flag through
+  `LadderMap` (orthogonal to the collision states, since a rung tile may
+  also carry a one-way surface) and the solver prices CLIMB waypoints:
+  vertical chain edges at `move_speed / climb_speed` (`climb_speed` rides
+  on `PlatformerJumpProfile`, `climb_grab_cost` prices grab, top-out and
+  step-off transitions), grabs in place or as mid-air catches, descend
+  grabs through a one-way landing onto the rung below it, and top-outs
+  that mirror `ladder.gd`'s stop rule (stand on the rung's own top face,
+  or rise through a one-way landing above the chain and stand on it).
+  Off the chain: step-offs onto crossings beside a rung or the chain-base
+  floor, and drop/jump edges that reuse the airborne lattice.
+  `GridDebugDraw` tints ladder cells (`show_ladder`/`ladder_color`). The
+  follower drops CLIMB paths for now; bot climbing is the next slice.
   Awaiting re-verification.
 - Known gaps (intentionally out of scope so far): no camera limits, no
   death UI/permadeath flow (DESIGN.md §8 unwired), no fall-specific art
