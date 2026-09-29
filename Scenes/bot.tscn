@@ -9,8 +9,8 @@
 size = Vector2(10, 11)
 
 [node name="Bot" type="CharacterBody2D" unique_id=181996794 node_paths=PackedStringArray("sprite")]
-script = ExtResource("1_gdc2h")
 collision_mask = 3
+script = ExtResource("1_gdc2h")
 jump_velocity = -180.0
 jump_release_speed = 20.0
 sprite = NodePath("Sprite2D")
@@ -31,3 +31,5 @@ pathfinder = NodePath("../Pathfinder")
 z_index = 95
 position = Vector2(152, -8)
 script = ExtResource("4_6div5")
+debug_draw = true
+debug_draw_explored = true
