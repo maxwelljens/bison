@@ -611,9 +611,11 @@ func _classify_climb_run(states: Array[Vector3i], start: int, out: Array[PathWay
 
 ## Airborne run: the apex is the highest cell (including the landing cell).
 ## A first jump value >= 3 marks a powered takeoff (JUMP at the launch cell);
-## stepping onto a one-way's first cell from a grounded launch is
-## DROP_THROUGH; anything else is FALL.
-## Always closes with LAND. Returns the state index after the run.
+## a run at the very start of the state chain began mid-air instead, so it
+## is never a takeoff. Stepping onto a one-way's first cell from a grounded
+## launch is DROP_THROUGH; anything else is FALL.
+## Always closes with LAND unless a climb run (a catch) follows. Returns the
+## state index after the run.
 func _classify_air_run(states: Array[Vector3i], start: int, out: Array[PathWaypoint]) -> int:
 	var first := Vector2i(states[start].x, states[start].y)
 	var launch := first
@@ -635,7 +637,7 @@ func _classify_air_run(states: Array[Vector3i], start: int, out: Array[PathWaypo
 		land = Vector2i(states[index].x, states[index].y)
 	if land.y < apex.y:
 		apex = land
-	if first_jv >= 3:
+	if first_jv >= 3 and start > 0:
 		out.append(_make_waypoint(PathWaypoint.Kind.JUMP, launch, apex))
 	elif start > 0 and states[start - 1].z == 0 and _grid.is_oneway(first) \
 			and first == launch + Vector2i.DOWN:
@@ -643,9 +645,19 @@ func _classify_air_run(states: Array[Vector3i], start: int, out: Array[PathWaypo
 		drop.through_oneway = true
 		out.append(drop)
 	else:
-		var fall := _make_waypoint(PathWaypoint.Kind.FALL, launch)
-		fall.through_oneway = through_oneway
-		out.append(fall)
+		# A one-cell air run at the very start, caught at its own cell, is
+		# the mid-air start artifact (the agent is already on the chain);
+		# the CLIMB waypoint that follows is the real instruction.
+		var caught_here := (
+			start == 0
+			and index == start + 1
+			and index < states.size()
+			and states[index].z == CLIMB_JV
+		)
+		if not caught_here:
+			var fall := _make_waypoint(PathWaypoint.Kind.FALL, launch)
+			fall.through_oneway = through_oneway
+			out.append(fall)
 	# A climb run right after the air run is a mid-air catch; the CLIMB
 	# waypoint at the catch cell replaces the landing marker.
 	if index >= states.size() or states[index].z != CLIMB_JV:
