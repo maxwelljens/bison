@@ -5,7 +5,7 @@ extends Node
 ## SpriteFrames animations, and owns sprite facing.
 ##
 ## States never touch the sprite directly: they report
-## IDLE/RUN/STOP/AIR/STUN/DEAD and the animator resolves animation
+## IDLE/RUN/STOP/AIR/CLIMB/STUN/DEAD and the animator resolves animation
 ## names, the STOP one-shot hold, and flipping. Swapping art (or renaming animations) only touches the
 ## exported name mappings below.
 
@@ -20,6 +20,8 @@ enum Intent {
 	STOP,
 	## Any airborne phase; rising and falling share the jump frames for now.
 	AIR,
+	## Hanging or climbing a ladder.
+	CLIMB,
 	## Looping wobble shown for the whole stun lockout.
 	STUN,
 	## One-shot collapse after a lethal landing; holds its last frame.
@@ -36,6 +38,8 @@ enum Intent {
 @export var anim_stop: StringName = &"stop"
 ## SpriteFrames animation played for [enum Intent.AIR].
 @export var anim_air: StringName = &"jump"
+## SpriteFrames animation played for [enum Intent.CLIMB].
+@export var anim_climb: StringName = &"climb"
 ## SpriteFrames animation played for [enum Intent.STUN].
 @export var anim_stun: StringName = &"stun"
 ## SpriteFrames animation played for [enum Intent.DEAD].
@@ -87,7 +91,12 @@ func _show(intent: Intent) -> void:
 	if sprite == null or _shown == intent:
 		return
 	_shown = intent
-	sprite.play(_name_for(intent))
+	var name := _name_for(intent)
+	# Unassigned or missing animations degrade to idle (e.g. climb frames
+	# before the art lands) instead of erroring every frame.
+	if sprite.sprite_frames != null and not sprite.sprite_frames.has_animation(name):
+		name = anim_idle
+	sprite.play(name)
 
 
 func _name_for(intent: Intent) -> StringName:
@@ -98,6 +107,8 @@ func _name_for(intent: Intent) -> StringName:
 			return anim_stop
 		Intent.AIR:
 			return anim_air
+		Intent.CLIMB:
+			return anim_climb
 		Intent.STUN:
 			return anim_stun
 		Intent.DEAD:
