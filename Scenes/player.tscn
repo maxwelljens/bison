@@ -17,6 +17,7 @@
 [ext_resource type="AudioStream" uid="uid://drd0fu1lq8rg" path="res://Audio/SFX/Death Screams/Alien/sfx_deathscream_alien6.ogg" id="9_fs7ks"]
 [ext_resource type="Script" uid="uid://cor1d6sbd3pt8" path="res://Scripts/Player/stunned.gd" id="9_stun"]
 [ext_resource type="Script" uid="uid://bp6oi3hr20yb4" path="res://Scripts/Player/dead.gd" id="10_dead"]
+[ext_resource type="Script" path="res://Scripts/Player/ladder.gd" id="11_ladr"]
 [ext_resource type="Texture2D" uid="uid://dfx8uboq4nhlk" path="res://Textures/Tiles/Transparent/tile_0266.png" id="14_fd4e3"]
 
 [sub_resource type="SpriteFrames" id="SpriteFrames_fmu24"]
@@ -82,7 +83,7 @@ animations = [{
 [sub_resource type="RectangleShape2D" id="RectangleShape2D_fmu24"]
 size = Vector2(12, 11)
 
-[node name="Player" type="CharacterBody2D" unique_id=244470271 node_paths=PackedStringArray("state_grounded", "state_airborne", "state_stunned", "state_dead", "animator", "sfx")]
+[node name="Player" type="CharacterBody2D" unique_id=244470271 node_paths=PackedStringArray("state_grounded", "state_airborne", "state_stunned", "state_dead", "state_ladder", "animator", "sfx")]
 script = ExtResource("1_cvnsp")
 collision_mask = 3
 move_speed = 50.0
@@ -93,6 +94,7 @@ state_grounded = NodePath("StateMachine/Grounded")
 state_airborne = NodePath("StateMachine/Airborne")
 state_stunned = NodePath("StateMachine/Stunned")
 state_dead = NodePath("StateMachine/Dead")
+state_ladder = NodePath("StateMachine/Ladder")
 animator = NodePath("Animator")
 sfx = NodePath("Sfx")
 
@@ -110,6 +112,9 @@ stun_time = 1.5
 
 [node name="Dead" type="Node" parent="StateMachine" unique_id=305609661]
 script = ExtResource("10_dead")
+
+[node name="Ladder" type="Node" parent="StateMachine"]
+script = ExtResource("11_ladr")
 
 [node name="Animator" type="Node" parent="." unique_id=315617902 node_paths=PackedStringArray("sprite")]
 script = ExtResource("7_anim")

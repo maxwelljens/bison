@@ -47,13 +47,6 @@ func physics_process(delta: float) -> void:
 		_coyote_timer = 0.0
 		player.jumped_this_frame = true
 
-	# Drop-through: press down while standing to sink through a one-way
-	# platform. A jump launched this same frame wins; over solid ground
-	# the masked bit touches nothing, so the pulse is a harmless no-op.
-	if player.down_just_pressed and not player.jumped_this_frame \
-			and player.is_on_floor():
-		player.start_drop_through()
-
 	# Variable jump height: early release while rising scales velocity down
 	# instead of stopping, so a tap gives a short hop. The launch frame's
 	# own release edge is seen here; releases on later frames land in
