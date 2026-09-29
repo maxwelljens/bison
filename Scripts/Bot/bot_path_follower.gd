@@ -108,6 +108,10 @@ func _physics_process(_delta: float) -> void:
 				bot.drop_through()
 				bot.input_down = true
 			_air_transition(waypoint)
+		PathWaypoint.Kind.CLIMB:
+			# Climbing execution arrives with the bot ladder slice; drop the
+			# path for now instead of grinding the stuck watchdog on it.
+			_path = null
 
 
 ## Unpowered air move: release jump, steer toward the next waypoint, and
