@@ -72,28 +72,39 @@ commit them. The warren (hidden burrow system) is the colony home.
 	`texture_open` ships unassigned (open-chest art pending); texture
 	slot defaults keep the sprite's own texture until assigned.
   - `Player` (instance of `Scenes/player.tscn`) with children:
-    `StateMachine` (holds the `Grounded`/`Airborne`/`Stunned`/`Dead`
-    state nodes), `Animator`, `Sfx`, `AnimatedSprite2D` (SpriteFrames:
-    idle/jump/run/stop/stun/dead), `CollisionShape2D` (RectangleShape2D
-    12×11 at (0, 2.5)), and `Camera2D` (follows the player for free by
-    being a child).
+    `StateMachine` (holds the `Grounded`/`Airborne`/`Stunned`/`Dead`/
+    `Ladder` state nodes), `Animator`, `Sfx`, `AnimatedSprite2D`
+    (SpriteFrames: idle/jump/run/stop/stun/dead; climb frames pending —
+    the CLIMB intent falls back to idle), `CollisionShape2D`
+    (RectangleShape2D 12×11 at (0, 2.5)), and `Camera2D` (follows the
+    player for free by being a child).
 - `Scripts/Player/` — player-driven state machine (`grounded.gd`,
-  `airborne.gd`, `stunned.gd`, `dead.gd`): the player gathers input
-  once per frame (zeroed while stunned/dead), the current state runs
-  the frame's physics and ends with `move_and_slide()`, transitions
-  are evaluated on that fresh floor state (Grounded exits only when the
-  floor is lost AND its coyote window expired, so jump launching stays
-  inside it), and states emit animation intents
-  (IDLE/RUN/STOP/AIR/STUN/DEAD) that `player_animator.gd` maps onto the
-  SpriteFrames. Fall damage: the drop below the flight's apex resolves
-  on the Airborne touchdown edge into safe / stun / lethal tiers
-  (`stun_fall_distance`, `lethal_fall_distance`, no health pool); stun
-  is a timed lockout with a friction slide, death freezes the body and
-  closes any open loot session. Drop-through: one-way platform tiles
-  live on their own fg-tileset physics layer (collision layer 2, project
-  setting "One-way"); pressing down while standing masks that bit for
-  `drop_through_time`, so the player sinks through one-ways while solid
-  ground (layer 1) keeps colliding. `player_state.gd` is the base class
+  `airborne.gd`, `stunned.gd`, `dead.gd`, `ladder.gd`): the player
+  gathers input once per frame (zeroed while stunned/dead), the current
+  state runs the frame's physics and ends with `move_and_slide()`,
+  transitions are evaluated on that fresh floor state (Grounded exits
+  only when the floor is lost AND its coyote window expired, so jump
+  launching stays inside it), and states emit animation intents
+  (IDLE/RUN/STOP/AIR/CLIMB/STUN/DEAD) that `player_animator.gd` maps
+  onto the SpriteFrames. Fall damage: the drop below the flight's apex
+  resolves on the Airborne touchdown edge into safe / stun / lethal
+  tiers (`stun_fall_distance`, `lethal_fall_distance`, no health pool);
+  stun is a timed lockout with a friction slide, death freezes the body
+  and closes any open loot session. Drop-through: one-way platform
+  tiles live on their own fg-tileset physics layer (collision layer 2,
+  project setting "One-way"); pressing down while standing masks that
+  bit for `drop_through_time`, so the player sinks through one-ways
+  while solid ground (layer 1) keeps colliding. Ladders (`ladder.gd`):
+  holding up or down grabs the rung at the player's centre (no reach
+  margin) — from the floor beside a chain or as a mid-fall catch that
+  cancels the drop (down then descends) — up/down climb, release hangs,
+  Space jumps off at full power, and left/right shimmies along the rung
+  tile at run speed (moving out of the tile steps off). The grab keeps
+  its x (no snap). The climb top stops at the first standable surface
+  at/above the top rung (pull-up onto landings) or hangs at the chain
+  edge; ladder frames reset the fall apex so catches and step-offs
+  never measure the whole chain as one fall.
+  `player_state.gd` is the base class
   (`setup`/`enter`/`exit`/`physics_process`).
 - Sound effects: `player_sfx.gd` (`PlayerSfx`) sits under the player
   like the Animator and never touches audio from the states. The player
@@ -109,8 +120,8 @@ commit them. The warren (hidden burrow system) is the colony home.
   `_stream_for`. `sound_stop` ships unassigned (no skid asset in the
   Kenney pack); unassigned streams silently skip their event.
 - Input map (`project.godot`): `move_left` (A/←), `move_right` (D/→),
-  `jump` (Space/W/↑), `move_down` (S/↓). Keyboard only, no gamepad
-  bindings.
+  `jump` (Space only), `move_up` (W/↑, ladders only — inert elsewhere),
+  `move_down` (S/↓). Keyboard only, no gamepad bindings.
 - Tile colour system: both tilesets carry a Color custom data layer
   named `color` (TileSet editor → Custom Data Layers). Authoring a tile's
   colour there and running a bake applies it to rendering:
@@ -124,6 +135,17 @@ commit them. The warren (hidden burrow system) is the colony home.
   modulate is derived — re-bake after editing values. No runtime code,
   no shader; per-cell variation is deliberately out of scope (per-tile
   modulate is shared by every cell placing that tile).
+- Ladder tiles: fg-tileset tiles carrying a `ladder` bool custom data
+  layer — the flag alone makes a rung, no collision is required (rungs
+  hang in open air). A run of contiguous flagged cells in a column is
+  a chain. Standing surfaces are optional: a tile with any collision
+  polygon (e.g. a one-way platform) at or directly above a chain's top
+  rung is the landing the player pulls up onto. The block's rung and
+  bottom tiles carry the flag; caps like (0, 3) are decoration
+  (`z_index` only).
+  `Scripts/Tilemap/ladder_map.gd` (`LadderMap`) is the single query API
+  (is-ladder, run extents, cell edges, standable tops) used by the
+  player now and by the grid/pathfinder/bot in later slices.
 - Scene-level tuning overrides on the Player node (user-tuned in the
   Inspector; the scene is the source of truth, currently
   `move_speed = 50.0`, `jump_velocity = -150.0`). Script defaults differ
@@ -305,6 +327,7 @@ the Player node take precedence.
 | `run_min_speed` (`PlayerGrounded`) | 10.0 px/s | releasing move input at/above this speed shows the stop animation |
 | `stun_time` (`PlayerStunned`) | 0.75 s | control lockout after a hard landing (momentum slides under friction) |
 | `drop_through_time` | 0.25 s | seconds the one-way bit stays masked after a press-down (~0.18 s clears the 8 px platform top) |
+| `climb_speed` | 60.0 px/s | vertical speed on ladders (~3.75 tiles/s) |
 | `stop_hold_time` (`PlayerAnimator`) | 0.2 s | how long the stop one-shot holds before idle resumes |
 | `footstep_interval` (`PlayerSfx`) | 0.3 s | seconds between footsteps while running |
 | `voice_count` (`PlayerSfx`) | 4 | pooled voices; oldest is reused beyond this many overlapping sounds |
