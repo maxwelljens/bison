@@ -413,7 +413,12 @@ func _expand_climb(state: Vector3i, open: MinHeap, goal_cell: Vector2i) -> void:
 			standable = _grid.is_passable(stand)
 		if standable:
 			_relax(open, state, stand, 0, climb_grab_cost, cell, goal_cell)
-	if _grid.is_passable(down):
+	# Dropping off mid-chain needs shimmy room; the chain's bottom edge and
+	# chain breaks drop without one.
+	if _grid.is_passable(down) and (
+			not _grid.is_ladder(down)
+			or _grid.is_passable(cell + Vector2i.LEFT)
+			or _grid.is_passable(cell + Vector2i.RIGHT)):
 		var fall_jv := _next_jump_value(0, Vector2i.DOWN)
 		_relax(open, state, down, fall_jv, 1.0 + air_penalty * float(fall_jv), cell, goal_cell)
 	if _grid.is_passable(up):
@@ -529,7 +534,8 @@ func _classify(states: Array[Vector3i]) -> Array[PathWaypoint]:
 	var index := 0
 	while index < states.size():
 		if states[index].z == 0:
-			index = _classify_ground_run(states, index, waypoints)
+			var from_climb := index > 0 and states[index - 1].z == CLIMB_JV
+			index = _classify_ground_run(states, index, waypoints, from_climb)
 		elif states[index].z == CLIMB_JV:
 			index = _classify_climb_run(states, index, waypoints)
 		else:
@@ -540,12 +546,22 @@ func _classify(states: Array[Vector3i]) -> Array[PathWaypoint]:
 	return waypoints
 
 
-## Ground run: WALK at direction changes, JUMP+LAND pairs for upward steps,
+## Ground run: WALK at the start (the ladder exit cell when leaving a
+## climb) and at direction changes, JUMP+LAND pairs for upward steps,
 ## DROP_THROUGH for steps onto one-way tops; closes with WALK at the run end.
 ## Returns the state index after the run.
-func _classify_ground_run(states: Array[Vector3i], start: int, out: Array[PathWaypoint]) -> int:
+func _classify_ground_run(
+		states: Array[Vector3i],
+		start: int,
+		out: Array[PathWaypoint],
+		from_climb: bool = false,
+) -> int:
 	var index := start
 	var last_direction := Vector2i.ZERO
+	# Walk-run compression would otherwise swallow the exit cell, and the
+	# follower needs it to pick the right way off the ladder.
+	if from_climb:
+		out.append(_make_waypoint(PathWaypoint.Kind.WALK, Vector2i(states[start].x, states[start].y)))
 	while index < states.size() and states[index].z == 0:
 		var cell := Vector2i(states[index].x, states[index].y)
 		if index + 1 < states.size() and states[index + 1].z == 0:
@@ -630,7 +646,10 @@ func _classify_air_run(states: Array[Vector3i], start: int, out: Array[PathWaypo
 		var fall := _make_waypoint(PathWaypoint.Kind.FALL, launch)
 		fall.through_oneway = through_oneway
 		out.append(fall)
-	out.append(_make_waypoint(PathWaypoint.Kind.LAND, land))
+	# A climb run right after the air run is a mid-air catch; the CLIMB
+	# waypoint at the catch cell replaces the landing marker.
+	if index >= states.size() or states[index].z != CLIMB_JV:
+		out.append(_make_waypoint(PathWaypoint.Kind.LAND, land))
 	return index
 
 
