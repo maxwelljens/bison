@@ -2,8 +2,8 @@
 ##
 ## Bakes a [PlatformerGrid] from the source tilemap and draws per-cell states:
 ## cell grid lines, solid fills, one-way surfaces (fill plus a top edge line),
-## and standable-cell dots. Updates continuously in the editor so tile edits
-## show up immediately; static at runtime.
+## ladder rungs, and standable-cell dots. Updates continuously in the editor so
+## tile edits show up immediately; static at runtime.
 @tool
 class_name GridDebugDraw
 extends Node2D
@@ -21,6 +21,8 @@ extends Node2D
 @export var show_solid: bool = true
 ## Fill one-way cells (with a top edge line).
 @export var show_oneway: bool = true
+## Fill ladder rung cells.
+@export var show_ladder: bool = true
 ## Dot every passable cell that has ground below it.
 @export var show_standable: bool = true
 
@@ -29,6 +31,8 @@ extends Node2D
 @export var solid_color: Color = Color(0.95, 0.3, 0.3, 0.3)
 ## Fill and edge color for one-way cells.
 @export var oneway_color: Color = Color(1.0, 0.62, 0.1, 0.5)
+## Fill color for ladder rung cells.
+@export var ladder_color: Color = Color(0.2, 0.9, 0.85, 0.45)
 ## Dot color for standable cells.
 @export var standable_color: Color = Color(0.3, 0.95, 0.4, 0.9)
 ## Line color for the cell grid.
@@ -75,6 +79,8 @@ func _draw() -> void:
 			elif state == PlatformerGrid.CellState.ONEWAY and show_oneway:
 				draw_rect(rect, oneway_color, true)
 				draw_line(top_left, top_left + Vector2(size.x, 0.0), oneway_color, 2.0)
+			if show_ladder and _grid.is_ladder(cell):
+				draw_rect(rect, ladder_color, true)
 			if show_standable and _grid.is_passable(cell) and _grid.has_ground_below(cell):
 				# Dot sits slightly below the cell center for readability.
 				draw_circle(top_left + size * 0.5 + Vector2(0.0, size.y * 0.3), 2.5, standable_color)

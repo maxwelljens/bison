@@ -19,14 +19,24 @@ var gravity: float
 var move_speed: float
 ## Tile size in px.
 var cell_size: float
+## Vertical ladder speed in px/s.
+var climb_speed: float
 
 
 ## Stores the agent's kinematics; all derived values are computed on demand.
-func _init(p_jump_velocity: float, p_gravity: float, p_move_speed: float, p_cell_size: float) -> void:
+## [param p_climb_speed] prices ladder travel for the pathfinder.
+func _init(
+		p_jump_velocity: float,
+		p_gravity: float,
+		p_move_speed: float,
+		p_cell_size: float,
+		p_climb_speed: float = 60.0,
+) -> void:
 	jump_velocity = p_jump_velocity
 	gravity = p_gravity
 	move_speed = p_move_speed
 	cell_size = p_cell_size
+	climb_speed = p_climb_speed
 
 
 ## Apex height of the jump arc in px: v² / (2·g).

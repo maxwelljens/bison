@@ -17,6 +17,9 @@ enum Kind {
 	FALL,
 	## Step down through a one-way platform surface (needs the press-down action).
 	DROP_THROUGH,
+	## Vertical travel along a ladder chain: grab at the first cell, climb to
+	## the last, then top out or step off.
+	CLIMB,
 }
 
 ## Which action this waypoint represents.

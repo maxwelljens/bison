@@ -70,8 +70,18 @@ class MinHeap:
 
 ## 4-neighborhood movement directions.
 const DIRECTIONS := [Vector2i.LEFT, Vector2i.RIGHT, Vector2i.UP, Vector2i.DOWN]
+## Sideways step-off targets from a ladder rung: crossing cells at rung level
+## and one cell up, where a crossing's surface meets the rung's top edge.
+const CLIMB_STEP_OFFS := [
+	Vector2i.LEFT,
+	Vector2i.RIGHT,
+	Vector2i.LEFT + Vector2i.UP,
+	Vector2i.RIGHT + Vector2i.UP,
+]
 ## "No cell" sentinel for optional cell values.
 const INVALID_CELL := Vector2i(-1, -1)
+## Jump value marking ladder climb states in the search lattice.
+const CLIMB_JV := -1
 
 ## TileMapLayer the search grid is baked from.
 @export var tilemap: TileMapLayer:
@@ -95,6 +105,8 @@ const MAP_GROUP := "navigation"
 @export var max_expansions: int = 20000
 ## Skip states that a strictly more capable state at the same cell dominates.
 @export var use_dominance_pruning: bool = true
+## Cost of grabbing, topping out of or stepping off a ladder, in walk cells.
+@export var climb_grab_cost: float = 0.5
 
 @export_group("Preview")
 ## Runs and draws an automatic route between the preview endpoints.
@@ -297,7 +309,9 @@ func find_path(start_world: Vector2, goal_world: Vector2, jump: PlatformerJumpPr
 func _expand(state: Vector3i, open: MinHeap, goal_cell: Vector2i) -> void:
 	var cell := Vector2i(state.x, state.y)
 	var jv := state.z
-	var base_cost: float = _g[state]
+	if jv == CLIMB_JV:
+		_expand_climb(state, open, goal_cell)
+		return
 	for direction in DIRECTIONS:
 		var next_cell: Vector2i = cell + direction
 		if not _grid.is_passable(next_cell):
@@ -322,20 +336,103 @@ func _expand(state: Vector3i, open: MinHeap, goal_cell: Vector2i) -> void:
 			# Drift envelope: reject cells outside the physical arc from launch.
 			if absi(next_cell.x - launch.x) > _jump.drift_cells(height, falling):
 				continue
-		if use_dominance_pruning and _is_dominated(next_cell, next_jv):
-			continue
-		var key := Vector3i(next_cell.x, next_cell.y, next_jv)
-		if _closed.has(key):
-			continue
 		# Base step cost plus an airborne penalty scaled by jump value.
-		var tentative := base_cost + 1.0 + air_penalty * float(next_jv)
-		if _g.has(key) and tentative >= _g[key]:
-			continue
-		_g[key] = tentative
-		_parents[key] = state
-		_launch[key] = launch
-		_register_cell_node(next_cell, next_jv)
-		open.push(key, tentative + _heuristic(next_cell, goal_cell))
+		var step_cost := 1.0 + air_penalty * float(next_jv)
+		_relax(open, state, next_cell, next_jv, step_cost, launch, goal_cell)
+	_try_ladder_grabs(state, cell, jv, open, goal_cell)
+
+
+## Relaxes one lattice edge from [param from_state] to [param to_cell] at
+## [param to_jv], costing [param step_cost]; [param launch] records the
+## airborne arc's origin for the drift envelope.
+func _relax(
+		open: MinHeap,
+		from_state: Vector3i,
+		to_cell: Vector2i,
+		to_jv: int,
+		step_cost: float,
+		launch: Vector2i,
+		goal_cell: Vector2i,
+) -> void:
+	if use_dominance_pruning and to_jv >= 0 and _is_dominated(to_cell, to_jv):
+		return
+	var key := Vector3i(to_cell.x, to_cell.y, to_jv)
+	if _closed.has(key):
+		return
+	var tentative: float = _g[from_state] + step_cost
+	if _g.has(key) and tentative >= _g[key]:
+		return
+	_g[key] = tentative
+	_parents[key] = from_state
+	_launch[key] = launch
+	_register_cell_node(to_cell, to_jv)
+	open.push(key, tentative + _heuristic(to_cell, goal_cell))
+
+
+## Ladder grab edges into the climb phase: in place when the cell is a rung
+## (a grounded grab or a mid-air catch), or down through a one-way landing
+## onto the rung two cells below (the descend grab).
+func _try_ladder_grabs(
+		state: Vector3i,
+		cell: Vector2i,
+		jv: int,
+		open: MinHeap,
+		goal_cell: Vector2i,
+) -> void:
+	if _grid.is_ladder(cell):
+		_relax(open, state, cell, CLIMB_JV, climb_grab_cost, cell, goal_cell)
+		return
+	if jv != 0:
+		return
+	var rung := cell + Vector2i.DOWN + Vector2i.DOWN
+	if _grid.is_oneway(cell + Vector2i.DOWN) and _grid.is_ladder(rung):
+		_relax(open, state, rung, CLIMB_JV, climb_grab_cost, cell, goal_cell)
+
+
+## Climb-phase expansion: vertical chain travel plus every way off the
+## ladder — top out onto the first standable surface at or above the chain
+## top (one-way landings are risen through), step off onto a crossing beside
+## the rung, drop off, or jump off at full power.
+func _expand_climb(state: Vector3i, open: MinHeap, goal_cell: Vector2i) -> void:
+	var cell := Vector2i(state.x, state.y)
+	var up := cell + Vector2i.UP
+	var down := cell + Vector2i.DOWN
+	var step_cost := _climb_step_cost()
+	if _grid.is_ladder(up):
+		_relax(open, state, up, CLIMB_JV, step_cost, cell, goal_cell)
+	if _grid.is_ladder(down):
+		_relax(open, state, down, CLIMB_JV, step_cost, cell, goal_cell)
+	if not _grid.is_ladder(up):
+		var stand := INVALID_CELL
+		var standable := false
+		if LadderMap.has_standable_top(_grid.source, cell):
+			stand = up
+			standable = _grid.is_passable(stand)
+		elif LadderMap.has_standable_top(_grid.source, up) and _grid.is_oneway(up):
+			stand = up + Vector2i.UP
+			standable = _grid.is_passable(stand)
+		if standable:
+			_relax(open, state, stand, 0, climb_grab_cost, cell, goal_cell)
+	if _grid.is_passable(down):
+		var fall_jv := _next_jump_value(0, Vector2i.DOWN)
+		_relax(open, state, down, fall_jv, 1.0 + air_penalty * float(fall_jv), cell, goal_cell)
+	if _grid.is_passable(up):
+		var jump_jv := _next_jump_value(0, Vector2i.UP)
+		_relax(open, state, up, jump_jv, 1.0 + air_penalty * float(jump_jv), cell, goal_cell)
+	for offset in CLIMB_STEP_OFFS:
+		var crossing: Vector2i = cell + offset
+		if _grid.is_passable(crossing) and _grid.has_ground_below(crossing):
+			_relax(open, state, crossing, 0, climb_grab_cost, cell, goal_cell)
+	if _grid.has_ground_below(cell):
+		_relax(open, state, cell, 0, climb_grab_cost, cell, goal_cell)
+
+
+## Cost of one ladder cell in walk-cell units: a cell takes cell_size /
+## climb_speed seconds to climb against cell_size / move_speed to walk.
+func _climb_step_cost() -> float:
+	if _jump.climb_speed <= 0.0:
+		return 1.0
+	return _jump.move_speed / _jump.climb_speed
 
 
 ## Jump-value transition for a move in [param direction].
@@ -381,8 +478,11 @@ func _is_dominated(cell: Vector2i, jv: int) -> bool:
 	return lowest <= jv and side_capable
 
 
-## Records a jump value seen at a cell for [method _is_dominated].
+## Records a jump value seen at a cell for [method _is_dominated]. Climb
+## states never dominate, so they are not recorded.
 func _register_cell_node(cell: Vector2i, jv: int) -> void:
+	if jv < 0:
+		return
 	if not _cell_nodes.has(cell):
 		_cell_nodes[cell] = []
 	var nodes: Array = _cell_nodes[cell]
@@ -430,6 +530,8 @@ func _classify(states: Array[Vector3i]) -> Array[PathWaypoint]:
 	while index < states.size():
 		if states[index].z == 0:
 			index = _classify_ground_run(states, index, waypoints)
+		elif states[index].z == CLIMB_JV:
+			index = _classify_climb_run(states, index, waypoints)
 		else:
 			index = _classify_air_run(states, index, waypoints)
 	var goal_cell := Vector2i(states[states.size() - 1].x, states[states.size() - 1].y)
@@ -468,9 +570,33 @@ func _classify_ground_run(states: Array[Vector3i], start: int, out: Array[PathWa
 	return index
 
 
+## Climb run: CLIMB at the run's first cell (the grab), at direction
+## reversals and at the run end (the exit cell). Returns the state index
+## after the run.
+func _classify_climb_run(states: Array[Vector3i], start: int, out: Array[PathWaypoint]) -> int:
+	var first := Vector2i(states[start].x, states[start].y)
+	out.append(_make_waypoint(PathWaypoint.Kind.CLIMB, first))
+	var index := start
+	var last_direction := 0
+	while index < states.size() and states[index].z == CLIMB_JV:
+		var cell := Vector2i(states[index].x, states[index].y)
+		if index + 1 < states.size() and states[index + 1].z == CLIMB_JV:
+			var next := Vector2i(states[index + 1].x, states[index + 1].y)
+			var direction := signi(next.y - cell.y)
+			if last_direction != 0 and direction != last_direction:
+				out.append(_make_waypoint(PathWaypoint.Kind.CLIMB, cell))
+			last_direction = direction
+		index += 1
+	var climb_end := Vector2i(states[index - 1].x, states[index - 1].y)
+	if out[out.size() - 1].cell != climb_end:
+		out.append(_make_waypoint(PathWaypoint.Kind.CLIMB, climb_end))
+	return index
+
+
 ## Airborne run: the apex is the highest cell (including the landing cell).
 ## A first jump value >= 3 marks a powered takeoff (JUMP at the launch cell);
-## stepping onto a one-way's first cell is DROP_THROUGH; anything else is FALL.
+## stepping onto a one-way's first cell from a grounded launch is
+## DROP_THROUGH; anything else is FALL.
 ## Always closes with LAND. Returns the state index after the run.
 func _classify_air_run(states: Array[Vector3i], start: int, out: Array[PathWaypoint]) -> int:
 	var first := Vector2i(states[start].x, states[start].y)
@@ -481,7 +607,7 @@ func _classify_air_run(states: Array[Vector3i], start: int, out: Array[PathWaypo
 	var apex := first
 	var through_oneway := _grid.is_oneway(first)
 	var index := start
-	while index < states.size() and states[index].z != 0:
+	while index < states.size() and states[index].z > 0:
 		var cell := Vector2i(states[index].x, states[index].y)
 		if cell.y < apex.y:
 			apex = cell
@@ -495,7 +621,8 @@ func _classify_air_run(states: Array[Vector3i], start: int, out: Array[PathWaypo
 		apex = land
 	if first_jv >= 3:
 		out.append(_make_waypoint(PathWaypoint.Kind.JUMP, launch, apex))
-	elif _grid.is_oneway(first) and first == launch + Vector2i.DOWN:
+	elif start > 0 and states[start - 1].z == 0 and _grid.is_oneway(first) \
+			and first == launch + Vector2i.DOWN:
 		var drop := _make_waypoint(PathWaypoint.Kind.DROP_THROUGH, launch)
 		drop.through_oneway = true
 		out.append(drop)
@@ -598,4 +725,6 @@ func _kind_color(kind: PathWaypoint.Kind) -> Color:
 			return Color(1.0, 0.55, 0.2, 0.95)
 		PathWaypoint.Kind.DROP_THROUGH:
 			return Color(0.85, 0.4, 1.0, 0.95)
+		PathWaypoint.Kind.CLIMB:
+			return Color(0.2, 0.9, 0.85, 0.95)
 	return Color(0.4, 1.0, 0.5, 0.95)

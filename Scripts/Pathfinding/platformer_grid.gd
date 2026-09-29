@@ -3,8 +3,9 @@ extends RefCounted
 ## Flat occupancy grid baked from a [TileMapLayer] for pathfinding.
 ##
 ## Converts tilemap physics into a plain array of cell states the pathfinder
-## can query cheaply. One snapshot per bake; re-bake via
-## [method from_tilemap] when the tilemap changes.
+## can query cheaply, plus a per-cell ladder flag from the tileset's ladder
+## custom data. One snapshot per bake; re-bake via [method from_tilemap]
+## when the tilemap changes.
 
 ## What occupies a cell.
 enum CellState {
@@ -26,6 +27,8 @@ var cell_size: Vector2i = Vector2i(16, 16)
 
 ## Row-major cell states over [member rect].
 var _states: PackedByteArray = PackedByteArray()
+## Row-major ladder flags over [member rect]; 1 marks a climbable rung cell.
+var _ladders: PackedByteArray = PackedByteArray()
 
 
 ## Bakes the tilemap's collision into a new grid snapshot.
@@ -36,10 +39,12 @@ static func from_tilemap(tilemap: TileMapLayer) -> PlatformerGrid:
 		grid.cell_size = tilemap.tile_set.tile_size
 	grid.rect = tilemap.get_used_rect()
 	grid._states.resize(grid.rect.size.x * grid.rect.size.y)
+	grid._ladders.resize(grid.rect.size.x * grid.rect.size.y)
 	for y in range(grid.rect.position.y, grid.rect.end.y):
 		for x in range(grid.rect.position.x, grid.rect.end.x):
 			var cell := Vector2i(x, y)
 			grid._states[grid._index(cell)] = grid._read_tile_state(cell)
+			grid._ladders[grid._index(cell)] = 1 if LadderMap.is_ladder_cell(tilemap, cell) else 0
 	return grid
 
 
@@ -69,6 +74,14 @@ func is_solid(cell: Vector2i) -> bool:
 ## True when the cell is a one-way platform surface.
 func is_oneway(cell: Vector2i) -> bool:
 	return get_state(cell) == CellState.ONEWAY
+
+
+## True when the cell holds a climbable ladder rung (its tile carries the
+## ladder custom-data flag). Ladder-ness is orthogonal to collision: a rung
+## may hang in open air or double as a one-way surface, so it is tracked as
+## a separate bit instead of a [enum CellState].
+func is_ladder(cell: Vector2i) -> bool:
+	return in_bounds(cell) and _ladders[_index(cell)] == 1
 
 
 ## True when the cell can be entered (empty or one-way).
