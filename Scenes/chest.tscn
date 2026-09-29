@@ -94,6 +94,7 @@ text = "INFO_OPEN"
 label_settings = SubResource("LabelSettings_mrmno")
 
 [node name="Sprite2D" type="Sprite2D" parent="." unique_id=397494199]
+self_modulate = Color(0.8392157, 0.3647059, 0.05490196, 1)
 texture = ExtResource("2_chst")
 
 [node name="Trigger" type="Area2D" parent="." unique_id=1547384217]
