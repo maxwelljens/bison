@@ -43,16 +43,13 @@ func _unhandled_input(event: InputEvent) -> void:
 		move_to(pathfinder.get_global_mouse_position())
 
 
-## Requests a move to [param world]: builds a jump profile from the bot's live
-## physics, searches a path, and resets all follower state.
+## Requests a move to [param world]: routes through the pathfinder with the
+## bot's live kinematics and resets all follower state.
 func move_to(world: Vector2) -> void:
 	_goal_world = world
 	if bot == null or pathfinder == null:
 		return
-	var jump := PlatformerJumpProfile.new(
-		bot.jump_velocity, bot.get_gravity_strength(), bot.move_speed,
-		float(pathfinder.get_cell_size()), bot.climb_speed)
-	_path = pathfinder.find_path(bot.global_position, world, jump)
+	_path = pathfinder.route(bot.global_position, world, bot.kinematics())
 	_index = 0
 	_launched = false
 	_saw_air = false

@@ -96,6 +96,45 @@ func has_ground_below(cell: Vector2i) -> bool:
 	return is_solid(below) or is_oneway(below)
 
 
+## True when the cell's tile has any collision polygon (solid box or one-way
+## strip), i.e. its top face can stand a body. Out-of-bounds cells are false.
+## This is [method LadderMap.has_standable_top]'s predicate at grid level, so
+## the search never reads the live tilemap mid-query.
+func has_standable_top(cell: Vector2i) -> bool:
+	return in_bounds(cell) and get_state(cell) != CellState.EMPTY
+
+
+## Walks down to the nearest standable cell within [param max_cells] steps;
+## returns the input cell when no standable cell is found.
+func snap_to_standable(cell: Vector2i, max_cells: int) -> Vector2i:
+	var candidate := cell
+	for _step in range(max_cells + 1):
+		if is_passable(candidate) and has_ground_below(candidate):
+			return candidate
+		candidate += Vector2i.DOWN
+	return cell
+
+
+## True when a solid cell blocks the column strip between two world points;
+## the strip is padded [param top_pad] px above and [param bottom_pad] px
+## below to cover the body height around the path line.
+func is_strip_blocked(
+		from_world: Vector2,
+		to_world: Vector2,
+		top_pad: float = 3.0,
+		bottom_pad: float = 7.0,
+) -> bool:
+	var top := world_to_cell(Vector2(from_world.x, minf(from_world.y, to_world.y) - top_pad)).y
+	var bottom := world_to_cell(Vector2(from_world.x, maxf(from_world.y, to_world.y) + bottom_pad)).y
+	var from_column := world_to_cell(from_world).x
+	var to_column := world_to_cell(to_world).x
+	for x in range(mini(from_column, to_column), maxi(from_column, to_column) + 1):
+		for y in range(mini(top, bottom), maxi(top, bottom) + 1):
+			if is_solid(Vector2i(x, y)):
+				return true
+	return false
+
+
 ## World pixel position to grid cell (via the source tilemap's transform).
 func world_to_cell(world: Vector2) -> Vector2i:
 	return source.local_to_map(source.to_local(world))

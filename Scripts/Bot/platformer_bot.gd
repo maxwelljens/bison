@@ -89,6 +89,11 @@ func get_gravity_strength() -> float:
 	return _gravity
 
 
+## Kinematics snapshot of this bot's live physics for pathfinding requests.
+func kinematics() -> AgentKinematics:
+	return AgentKinematics.new(jump_velocity, _gravity, move_speed, climb_speed)
+
+
 ## Pulses a drop-through: for [param duration] seconds the collision mask is
 ## zeroed so the body falls through one-way (and solid) tiles below. A short
 ## hack; the mask is restored in [method _physics_process].

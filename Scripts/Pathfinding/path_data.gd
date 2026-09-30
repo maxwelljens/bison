@@ -20,3 +20,7 @@ var goal_cell: Vector2i = Vector2i.ZERO
 
 ## Diagnostic: how many (cell, jump-value) states the search expanded.
 var cells_explored: int = 0
+
+## Diagnostic: cells the search expanded, in expansion order (feeds the
+## explored-cells overlay).
+var explored: Array[Vector2i] = []

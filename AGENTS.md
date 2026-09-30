@@ -47,7 +47,8 @@ commit them. The warren (hidden burrow system) is the colony home.
   `grounded.gd`, `airborne.gd`, `player_animator.gd`,
   `player_sfx.gd`); `Pathfinding/`
   (`platformer_grid.gd`, `jump_profile.gd`, `path_data.gd`,
-  `path_waypoint.gd`, `platformer_pathfinder.gd`,
+  `path_waypoint.gd`, `waypoint_classifier.gd`, `platformer_navigator.gd`,
+  `path_tuning.gd`, `agent_kinematics.gd`, `platformer_pathfinder.gd`,
   `debug/grid_debug_draw.gd`); `Bot/`
   (`platformer_bot.gd`, `bot_path_follower.gd`); `Chest/`
   (`chest.gd`, `chest_sfx.gd`, `chest_vfx.gd`).
@@ -154,7 +155,20 @@ commit them. The warren (hidden burrow system) is the colony home.
   landed (typed waypoints, jump model, TileMapLayer→grid extraction) and
   headlessly probed, plus a `GridDebugDraw` overlay and a `Pathfinder` route
   preview (both draw in the editor and in-game) for visual verification.
-  Solver (`platformer_pathfinder.gd`) landed and probe-verified. Bot
+  Solver landed and probe-verified; a 2026-09-30 architecture pass split it
+  into pure modules behind one seam: `platformer_navigator.gd`
+  (`PlatformerNavigator`, the jump-lattice A* engine, stateless between
+  calls — per-query state lives in its `Search` value),
+  `waypoint_classifier.gd` (`WaypointClassifier`: state chain → typed
+  waypoints; replayable from synthetic chains in tests),
+  `platformer_grid.gd` (the single world model: states, ladder bits,
+  `has_standable_top`, `snap_to_standable`, `is_strip_blocked`), and the
+  `path_tuning.gd`/`agent_kinematics.gd` value objects. The
+  `platformer_pathfinder.gd` node is now a thin scene adapter exposing
+  `route(from, to, agent)` and `is_drift_blocked` (plus `tuning` resource,
+  preview and overlay); the old `find_path`/`get_cell_size`/`rebuild_grid`
+  surface is gone — callers pass an `AgentKinematics` snapshot
+  (`PlatformerBot.kinematics()`). Bot
   (`platformer_bot.gd`) + follower (`bot_path_follower.gd`) landed: own
   movement (including a ladder mode mirroring the player's climbs),
   typed-waypoint execution, click-to-move (LMB), stuck-watchdog repath. Feedback round 1 fixed: real jumps over gaps (parity applied to
@@ -195,7 +209,8 @@ commit them. The warren (hidden burrow system) is the colony home.
   `LadderMap` (orthogonal to the collision states, since a rung tile may
   also carry a one-way surface) and the solver prices CLIMB waypoints:
   vertical chain edges at `move_speed / climb_speed` (`climb_speed` rides
-  on `PlatformerJumpProfile`, `climb_grab_cost` prices grab, top-out and
+  on `AgentKinematics` (the profile is derived inside the navigator),
+  `PathTuning.climb_grab_cost` prices grab, top-out and
   step-off transitions), grabs in place or as mid-air catches, descend
   grabs through a one-way landing onto the rung below it, and top-outs
   that mirror `ladder.gd`'s stop rule (stand on the rung's own top face,
