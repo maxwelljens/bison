@@ -22,6 +22,10 @@ extends Node
 @export var apex_tolerance: float = 4.0
 ## Physics frames without movement before the path is rebuilt.
 @export var stuck_timeout_frames: int = 45
+## When true, [method move_to] refuses any route containing a CLIMB
+## waypoint (treated as "no path found"). Off by default, so existing
+## bots keep climbing.
+@export var forbid_climb: bool = false
 
 var _path: PathData
 var _index: int = 0
@@ -34,6 +38,8 @@ var _nudge_side: int = 0
 var _stuck_frames: int = 0
 var _last_position: Vector2 = Vector2.ZERO
 var _goal_world: Vector2 = Vector2.ZERO
+# Newest accepted goal requested mid-flight; applied on landing.
+var _replan_queued: bool = false
 
 
 func _unhandled_input(event: InputEvent) -> void:
@@ -44,11 +50,21 @@ func _unhandled_input(event: InputEvent) -> void:
 
 
 ## Requests a move to [param world]: routes through the pathfinder with the
-## bot's live kinematics and resets all follower state.
-func move_to(world: Vector2) -> void:
-	_goal_world = world
+## bot's live kinematics. Returns true when a followable route was found
+## and accepted, false when routing failed, the follower is unconfigured,
+## or [member forbid_climb] refused a route containing a CLIMB waypoint.
+##
+## While the bot is mid-flight (airborne after a jump or step-off) a new
+## goal does NOT disturb the flight: the newest accepted goal is queued
+## (last call wins) and the route is recomputed on landing, so an in-flight
+## jump always commits. A refused route changes nothing — the current
+## flight and its goal stay in effect.
+func move_to(world: Vector2) -> bool:
 	if bot == null or pathfinder == null:
-		return
+		return false
+	if _in_flight():
+		return _queue_goal(world)
+	_goal_world = world
 	_path = pathfinder.route(bot.global_position, world, bot.kinematics())
 	_index = 0
 	_launched = false
@@ -58,11 +74,50 @@ func move_to(world: Vector2) -> void:
 	_nudge_side = 0
 	_stuck_frames = 0
 	_last_position = bot.global_position
+	if not _path.found:
+		return false
+	if forbid_climb:
+		for waypoint in _path.waypoints:
+			if waypoint.kind == PathWaypoint.Kind.CLIMB:
+				# Refused: treat as "no path found" — drop the route so the
+				# follower goes idle instead of following a climb.
+				_path = null
+				_release_inputs()
+				return false
+	return true
+
+
+## Queues [param world] as the goal to pursue once the current flight
+## lands. Returns whether a route to it exists right now; a refused route
+## is not queued. The stored route keeps flying untouched, so the launch
+## state survives rapid retargeting.
+func _queue_goal(world: Vector2) -> bool:
+	var path: PathData = pathfinder.route(bot.global_position, world, bot.kinematics())
+	if not path.found:
+		return false
+	if forbid_climb:
+		for waypoint in path.waypoints:
+			if waypoint.kind == PathWaypoint.Kind.CLIMB:
+				return false
+	_goal_world = world
+	_replan_queued = true
+	return true
+
+
+## True while the body is airborne — the window in which goals queue
+## instead of applying, and input release is suppressed.
+func _in_flight() -> bool:
+	return not bot.is_on_floor() and not bot.is_climbing()
 
 
 func _physics_process(_delta: float) -> void:
 	if bot == null or pathfinder == null:
 		return
+	if _replan_queued and bot.is_on_floor() and not bot.is_climbing():
+		# Landed with a queued retarget: recompute from the landing spot
+		# (grounded, so move_to applies it immediately).
+		_replan_queued = false
+		move_to(_goal_world)
 	if _path == null or not _path.found or _index >= _path.waypoints.size():
 		_release_inputs()
 		return
@@ -339,8 +394,25 @@ func _watch_stuck() -> void:
 		move_to(_goal_world)
 
 
+## Stops driving the bot: drops the stored route, cancels any queued
+## retarget and clears all inputs (on landing when mid-flight), so the
+## bot idles in place until a new [method move_to] gives it a goal.
+func stop() -> void:
+	_path = null
+	_index = 0
+	_replan_queued = false
+	_release_inputs()
+
+
 ## Clears all bot inputs (idle, or when there is no path to follow).
+## Suppressed mid-flight: releasing while airborne would dead-stick the
+## body (friction zeroes its speed and no steer remains), so the current
+## flight's inputs persist until a landing, where the caller clears them.
 func _release_inputs() -> void:
+	if bot == null:
+		return
+	if _in_flight():
+		return
 	bot.input_left = false
 	bot.input_right = false
 	bot.input_jump = false

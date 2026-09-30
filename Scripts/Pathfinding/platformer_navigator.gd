@@ -138,14 +138,24 @@ func is_drift_blocked(from_world: Vector2, to_world: Vector2) -> bool:
 		from_world, to_world, tuning.drift_pad_top, tuning.drift_pad_bottom)
 
 
-## World point a goal snaps to: the nearest standable cell within
-## [member PathTuning.goal_snap_max_cells] steps below [param world], else
-## [param world] unchanged.
+## World point a goal snaps to: the nearest weighted standable cell within
+## [member PathTuning.goal_snap_max_cells] rows below /
+## [member PathTuning.goal_snap_side_cells] columns beside [param world],
+## else [param world] unchanged.
 func snap_goal_world(world: Vector2) -> Vector2:
 	if grid == null:
 		return world
-	return grid.cell_to_world(
-		grid.snap_to_standable(grid.world_to_cell(world), tuning.goal_snap_max_cells))
+	return grid.cell_to_world(_snap_goal_cell(grid.world_to_cell(world)))
+
+
+## Goal-cell snap with the query's tuning.
+func _snap_goal_cell(cell: Vector2i) -> Vector2i:
+	return grid.snap_to_standable(
+		cell,
+		tuning.goal_snap_max_cells,
+		tuning.goal_snap_side_cells,
+		tuning.goal_snap_vertical_weight,
+	)
 
 
 ## Runs the A* search and classifies the resulting state chain into typed
@@ -154,9 +164,12 @@ func _run(state: Search, start_world: Vector2, goal_world: Vector2) -> PathData:
 	var result := PathData.new()
 	var open := MinHeap.new()
 	result.start_cell = grid.world_to_cell(start_world)
-	result.goal_cell = grid.snap_to_standable(
-		grid.world_to_cell(goal_world), tuning.goal_snap_max_cells)
+	result.goal_cell = _snap_goal_cell(grid.world_to_cell(goal_world))
 	if not grid.is_passable(result.start_cell) or not grid.is_passable(result.goal_cell):
+		return result
+	# Refuse goals with no surface below (and no rung): following them would
+	# mean walking off into a hole to reach a point that has no landing.
+	if not _goal_supported(result.goal_cell):
 		return result
 
 	# A start without ground below begins mid-arc, at peak jump value.
@@ -199,6 +212,12 @@ func _run(state: Search, start_world: Vector2, goal_world: Vector2) -> PathData:
 	for cell in state.explored:
 		result.explored.append(cell)
 	return result
+
+
+## True when the goal cell can be stood on: solid or one-way ground below,
+## or a ladder rung (valid goals mid-chain).
+func _goal_supported(cell: Vector2i) -> bool:
+	return grid.has_ground_below(cell) or grid.is_ladder(cell)
 
 
 func _expand(state: Search, open: MinHeap, current: Vector3i, goal_cell: Vector2i) -> void:

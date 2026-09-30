@@ -104,15 +104,36 @@ func has_standable_top(cell: Vector2i) -> bool:
 	return in_bounds(cell) and get_state(cell) != CellState.EMPTY
 
 
-## Walks down to the nearest standable cell within [param max_cells] steps;
-## returns the input cell when no standable cell is found.
-func snap_to_standable(cell: Vector2i, max_cells: int) -> Vector2i:
-	var candidate := cell
-	for _step in range(max_cells + 1):
-		if is_passable(candidate) and has_ground_below(candidate):
-			return candidate
-		candidate += Vector2i.DOWN
-	return cell
+## Nearest standable cell to snap a goal onto: the input cell itself when
+## it can be stood on, otherwise the best candidate within
+## [param max_cells] rows below and [param side_cells] columns either side.
+## Candidates are scored |dy| · [param vertical_weight] + |dx| (horizontal
+## cell = 1), so a weight above 1 prefers a lip at the request's height
+## over a floor far below — a goal floating over a gap resolves sideways to
+## a landing or stays put, never dives into the chasm. Returns the input
+## cell when no candidate exists; callers refuse such goals.
+func snap_to_standable(
+		cell: Vector2i,
+		max_cells: int,
+		side_cells: int = 0,
+		vertical_weight: float = 1.0,
+) -> Vector2i:
+	if is_passable(cell) and has_ground_below(cell):
+		return cell
+	var best := cell
+	var best_score := INF
+	for dy in range(max_cells + 1):
+		for dx in range(-side_cells, side_cells + 1):
+			if dx == 0 and dy == 0:
+				continue
+			var candidate := cell + Vector2i(dx, dy)
+			if not is_passable(candidate) or not has_ground_below(candidate):
+				continue
+			var score := float(absi(dy)) * vertical_weight + float(absi(dx))
+			if score < best_score:
+				best_score = score
+				best = candidate
+	return best
 
 
 ## True when a solid cell blocks the column strip between two world points;

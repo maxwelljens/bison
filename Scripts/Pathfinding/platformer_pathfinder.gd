@@ -193,13 +193,19 @@ func _draw_preview_markers() -> void:
 			_draw_marker(to_local(snapped_world), Color(1.0, 1.0, 1.0, 0.9), false, 5.0)
 
 
-## Whether a preview endpoint lands in a passable cell (after goal snapping).
+## Whether a preview endpoint lands in a usable cell: passable, and for the
+## goal endpoint (after snapping) supported like [method PlatformerNavigator.route]
+## requires it.
 func _preview_point_valid(world: Vector2, snap_to_ground: bool) -> bool:
 	if _grid == null:
 		return true
 	var cell := _grid.world_to_cell(world)
 	if snap_to_ground:
-		cell = _grid.snap_to_standable(cell, _active_tuning().goal_snap_max_cells)
+		var active := _active_tuning()
+		cell = _grid.snap_to_standable(cell, active.goal_snap_max_cells,
+				active.goal_snap_side_cells, active.goal_snap_vertical_weight)
+		return _grid.is_passable(cell) \
+				and (_grid.has_ground_below(cell) or _grid.is_ladder(cell))
 	return _grid.is_passable(cell)
 
 

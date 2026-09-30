@@ -11,8 +11,18 @@ extends Resource
 @export var air_penalty: float = 0.25
 ## Weighted-A* factor on the heuristic; > 1 trades optimality for speed.
 @export var heuristic_weight: float = 1.0
-## Max downward cells the goal may snap to standable ground.
+## Max rows below the request the goal snap gathers standable candidates
+## from (cells).
 @export var goal_snap_max_cells: int = 8
+## Max columns left/right of the request the goal snap gathers standable
+## candidates from (cells); together with [member goal_snap_max_cells] this
+## bounds the candidate box.
+@export var goal_snap_side_cells: int = 8
+## Vertical-distance weight of the goal snap relative to one horizontal
+## cell (unitless, only the ratio matters). Values > 1 prefer a landing lip
+## near the request's height over a floor far below, so a goal over a gap
+## resolves sideways — or is refused — instead of diving into the chasm.
+@export var goal_snap_vertical_weight: float = 3.0
 ## Search budget in expanded states before giving up.
 @export var max_expansions: int = 20000
 ## Skip states that a strictly more capable state at the same cell dominates.
