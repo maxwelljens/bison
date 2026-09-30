@@ -229,7 +229,15 @@ commit them. The warren (hidden burrow system) is the colony home.
   only routed where a side is open to shimmy off. Climb exits carry a walk waypoint at the stand/step-off cell
   so run compression cannot swallow it, catches replace the landing
   marker with the catch cell's CLIMB, and jump-offs keep the matched
-  impulse sizing.
+  impulse sizing. Feedback round 8 fixed drop-through classification:
+  the airborne run now names its action by the first step off the launch
+  state (step up = JUMP takeoff, step down out of a grounded run =
+  DROP_THROUGH through the one-way cell below the launch, anything else
+  = FALL) instead of by jump value — a fall starts at the lattice peak,
+  which overlaps the takeoff range once a profile jumps 2+ cells, so
+  drops through one-way platforms were misread as jumps and the bot
+  hopped on the platform instead of phasing through. Ladder drop-offs
+  classify as FALL through the same rule.
   Awaiting re-verification.
 - Known gaps (intentionally out of scope so far): no camera limits, no
   death UI/permadeath flow (DESIGN.md §8 unwired), no fall-specific art
