@@ -8,7 +8,7 @@ extends PlayerState
 ## is held at zero so the body stays exactly where it collapsed, and the
 ## DEAD intent plays the one-shot death animation. No state ever leaves
 ## this one: the run ends here until the scene is reloaded (the
-## permadeath flow of DESIGN.md §8 is unwired). Any open loot screen is
+## permadeath flow of DESIGN.md §9 is unwired). Any open loot screen is
 ## closed on entry.
 
 

@@ -131,6 +131,16 @@ func controls_enabled() -> bool:
 	return _current != state_stunned and _current != state_dead
 
 
+## Kills the player outright (one-touch mortality). External causes — a
+## creature's contact, a trap — call this; fall deaths use the internal
+## fall tiers instead. Idempotent: does nothing once already dead.
+func kill() -> void:
+	if _current == state_dead:
+		return
+	sfx.play(PlayerSfx.Event.DEATH)
+	_transition(state_dead)
+
+
 ## Starts a drop-through: for [member drop_through_time] seconds the
 ## one-way platform bit is removed from the collision mask so the player
 ## sinks through one-way platforms. Solid tiles sit on another layer and
