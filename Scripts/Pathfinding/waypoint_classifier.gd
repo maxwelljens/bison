@@ -99,10 +99,14 @@ static func _classify_climb_run(states: Array[Vector3i], start: int, out: Array[
 
 
 ## Airborne run: the apex is the highest cell (including the landing cell).
-## A first jump value >= 3 marks a powered takeoff (JUMP at the launch cell);
-## a run at the very start of the state chain began mid-air instead, so it
-## is never a takeoff. Stepping onto a one-way's first cell from a grounded
-## launch is DROP_THROUGH; anything else is FALL.
+## The first step off the launch state names the action: stepping up is a
+## powered takeoff (JUMP at the launch cell), while stepping down out of a
+## grounded run drops through the one-way platform below the launch cell
+## (DROP_THROUGH, whose first cell is that platform's tile). A run at the
+## very start of the state chain began mid-air instead, so it is never a
+## takeoff; anything else (a ledge step-off, a ladder drop off) is FALL.
+## Jump values cannot tell takeoffs apart from drops: a fall starts at the
+## lattice peak, which overlaps the takeoff range for taller jump profiles.
 ## Always closes with LAND unless a climb run (a catch) follows. Returns the
 ## state index after the run.
 static func _classify_air_run(
@@ -115,7 +119,6 @@ static func _classify_air_run(
 	var launch := first
 	if start > 0:
 		launch = Vector2i(states[start - 1].x, states[start - 1].y)
-	var first_jv := states[start].z
 	var apex := first
 	var through_oneway := grid.is_oneway(first)
 	var index := start
@@ -131,10 +134,10 @@ static func _classify_air_run(
 		land = Vector2i(states[index].x, states[index].y)
 	if land.y < apex.y:
 		apex = land
-	if first_jv >= 3 and start > 0:
+	if start > 0 and first == launch + Vector2i.UP:
 		out.append(_make_waypoint(PathWaypoint.Kind.JUMP, launch, grid, apex))
-	elif start > 0 and states[start - 1].z == 0 and grid.is_oneway(first) \
-			and first == launch + Vector2i.DOWN:
+	elif start > 0 and states[start - 1].z == 0 and first == launch + Vector2i.DOWN \
+			and grid.is_oneway(first):
 		var drop := _make_waypoint(PathWaypoint.Kind.DROP_THROUGH, launch, grid)
 		drop.through_oneway = true
 		out.append(drop)
