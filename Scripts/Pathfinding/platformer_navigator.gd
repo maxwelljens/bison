@@ -81,6 +81,13 @@ class Search:
 	var jump: PlatformerJumpProfile
 	## Jump height in cells from [member jump]; drives the lattice peak.
 	var max_jump_cells: int = 2
+	## Whether this search may generate jump-launch edges; false prunes them,
+	## so unreachable goals simply fail the search.
+	var can_jump: bool = true
+	## Whether this search may generate CLIMB edges; false prunes them.
+	var can_climb: bool = true
+	## Whether this search may generate DROP_THROUGH edges; false prunes them.
+	var can_drop_through: bool = true
 	var g: Dictionary = {}
 	var parents: Dictionary = {}
 	var closed: Dictionary = {}
@@ -123,6 +130,9 @@ func route(from_world: Vector2, to_world: Vector2, agent: AgentKinematics) -> Pa
 		agent.climb_speed,
 	)
 	state.max_jump_cells = state.jump.height_cells()
+	state.can_jump = agent.can_jump
+	state.can_climb = agent.can_climb
+	state.can_drop_through = agent.can_drop_through
 	return _run(state, from_world, to_world)
 
 
@@ -230,6 +240,14 @@ func _expand(state: Search, open: MinHeap, current: Vector3i, goal_cell: Vector2
 		var next_cell: Vector2i = cell + direction
 		if not grid.is_passable(next_cell):
 			continue
+		# A jump-less agent never rises: walking off ledges and falling stay
+		# (gravity is free), but no step-up or takeoff edge is generated.
+		if not state.can_jump and direction == Vector2i.UP:
+			continue
+		# An agent that cannot drop through never enters a one-way surface
+		# from above; that edge is the DROP_THROUGH step.
+		if not state.can_drop_through and direction == Vector2i.DOWN and grid.is_oneway(next_cell):
+			continue
 		if direction == Vector2i.UP and not _can_rise(state, jv):
 			continue
 		if direction != Vector2i.UP and direction != Vector2i.DOWN and not _allows_sideways(jv):
@@ -286,7 +304,8 @@ func _relax(
 
 ## Ladder grab edges into the climb phase: in place when the cell is a rung
 ## (a grounded grab or a mid-air catch), or down through a one-way landing
-## onto the rung two cells below (the descend grab).
+## onto the rung two cells below (the descend grab). Gated by
+## [member Search.can_climb]: a non-climbing agent gets no climb edges at all.
 func _try_ladder_grabs(
 		state: Search,
 		open: MinHeap,
@@ -295,6 +314,8 @@ func _try_ladder_grabs(
 		jv: int,
 		goal_cell: Vector2i,
 ) -> void:
+	if not state.can_climb:
+		return
 	if grid.is_ladder(cell):
 		_relax(state, open, current, cell, WaypointClassifier.CLIMB_JV, tuning.climb_grab_cost, cell, goal_cell)
 		return
@@ -337,7 +358,9 @@ func _expand_climb(state: Search, open: MinHeap, current: Vector3i, goal_cell: V
 			or grid.is_passable(cell + Vector2i.RIGHT)):
 		var fall_jv := _next_jump_value(state, 0, Vector2i.DOWN)
 		_relax(state, open, current, down, fall_jv, 1.0 + tuning.air_penalty * float(fall_jv), cell, goal_cell)
-	if grid.is_passable(up):
+	# The ladder jump-off is a jump-launch edge, so a jump-less agent keeps
+	# climbing but cannot launch off the chain.
+	if state.can_jump and grid.is_passable(up):
 		var jump_jv := _next_jump_value(state, 0, Vector2i.UP)
 		_relax(state, open, current, up, jump_jv, 1.0 + tuning.air_penalty * float(jump_jv), cell, goal_cell)
 	for offset in CLIMB_STEP_OFFS:

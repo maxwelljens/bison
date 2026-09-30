@@ -187,8 +187,9 @@ commit them. The warren (hidden burrow system) is the colony home.
   hook (`class_name Mauser extends Npc`, species behaviour belongs
   there); the `Brain` tree carries all tuning (see the Mauser tuning
   reference below) and a `test_level.tscn` instance is placed for play
-  feedback. Its follower runs `click_to_move` off and `forbid_climb` on:
-  it jumps gaps but never climbs ladders, so chains are an escape.
+  feedback. Its follower runs `click_to_move` off and its body carries
+  `can_climb = false` (the species trait): it jumps gaps but never climbs
+  ladders, so chains are an escape.
 - `Player.kill()` — public one-touch death entry for external causes
   (creature contact, traps); fall deaths keep using the internal tiers.
 - Pathfinding retarget semantics (probe-fixed 2026-09-30): `BotPathFollower.move_to` **commits to in-flight jumps** — while the bot is airborne a new target is queued (newest wins; refused routes change nothing) and replanned on landing, and mid-flight input release is suppressed (the in-flight steer continues), so rapid retargeting never truncates a jump or dead-sticks a body mid-air. Goal snapping (`PlatformerGrid.snap_to_standable`) is vertically weighted and side-aware — `PathTuning.goal_snap_side_cells` (8) and `goal_snap_vertical_weight` (3.0), with `goal_snap_max_cells` bounding the descent — and the navigator refuses unsupported goals (no ground/one-way below and not a ladder rung): a target floating over a gap snaps to a landing lip at height or the route is refused, never the chasm floor. Regression harness (throwaway, copied back into the project root to run): `/tmp/opencode/bison-probe-retarget/_probe_retarget.gd` — stairs/gap/mid-air retarget assertions, ~10 s headless.
@@ -287,9 +288,12 @@ commit them. The warren (hidden burrow system) is the colony home.
 - Known gaps (intentionally out of scope so far): no camera limits, no
   death UI/permadeath flow (DESIGN.md §9 unwired), no fall-specific art
   (AIR still maps to the jump frames). Mauser: placeholder sprite, no
-  wary retreat, no creature audio. Pathfinding has no per-agent
-  capability flags yet — the Mauser's "never climbs ladders" rule is the
-  crude `forbid_climb` route filter on `BotPathFollower`.
+  wary retreat, no creature audio. Per-agent pathfinding capability flags
+  landed (`can_jump`/`can_climb`/`can_drop_through` on `PlatformerBot`,
+  carried into the search through `AgentKinematics`): each prunes the
+  matching edge family from the navigator's search, so the Mauser's
+  "never climbs ladders" rule is now `can_climb = false` on its body
+  instead of a route filter on `BotPathFollower`.
 
 ## Coding directives (MUST follow)
 
@@ -441,7 +445,8 @@ the Player node take precedence.
 The Mauser is a configured instance of the NPC framework: tuning is
 spread over the node whose behaviour reads it (state thresholds live
 with the state that acts on them). Motor values (`jump_velocity`, …)
-stay on the body as with the Bot. The personal-space bubble is the
+stay on the body as with the Bot, as do the `Capabilities` flags
+(the Mauser sets `can_climb = false`). The personal-space bubble is the
 `SenseArea` circle radius in the scene (≈48 px): "invaded" means the
 player's body overlaps it. Sensing = in the bubble AND line of sight
 clear (solid tiles occlude, one-way platforms don't).

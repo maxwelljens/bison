@@ -23,10 +23,6 @@ extends Node
 @export var apex_tolerance: float = 4.0
 ## Physics frames without movement before the path is rebuilt.
 @export var stuck_timeout_frames: int = 45
-## When true, [method move_to] refuses any route containing a CLIMB
-## waypoint (treated as "no path found"). Off by default, so existing
-## bots keep climbing.
-@export var forbid_climb: bool = false
 
 var _path: PathData
 var _index: int = 0
@@ -51,9 +47,9 @@ func _unhandled_input(event: InputEvent) -> void:
 
 
 ## Requests a move to [param world]: routes through the pathfinder with the
-## bot's live kinematics. Returns true when a followable route was found
-## and accepted, false when routing failed, the follower is unconfigured,
-## or [member forbid_climb] refused a route containing a CLIMB waypoint.
+## bot's live kinematics and capabilities. Returns true when a followable
+## route was found and accepted, false when routing failed or the follower
+## is unconfigured.
 ##
 ## While the bot is mid-flight (airborne after a jump or step-off) a new
 ## goal does NOT disturb the flight: the newest accepted goal is queued
@@ -75,17 +71,7 @@ func move_to(world: Vector2) -> bool:
 	_nudge_side = 0
 	_stuck_frames = 0
 	_last_position = bot.global_position
-	if not _path.found:
-		return false
-	if forbid_climb:
-		for waypoint in _path.waypoints:
-			if waypoint.kind == PathWaypoint.Kind.CLIMB:
-				# Refused: treat as "no path found" — drop the route so the
-				# follower goes idle instead of following a climb.
-				_path = null
-				_release_inputs()
-				return false
-	return true
+	return _path.found
 
 
 ## Queues [param world] as the goal to pursue once the current flight
@@ -96,10 +82,6 @@ func _queue_goal(world: Vector2) -> bool:
 	var path: PathData = pathfinder.route(bot.global_position, world, bot.kinematics())
 	if not path.found:
 		return false
-	if forbid_climb:
-		for waypoint in path.waypoints:
-			if waypoint.kind == PathWaypoint.Kind.CLIMB:
-				return false
 	_goal_world = world
 	_replan_queued = true
 	return true

@@ -69,8 +69,8 @@ func tick(delta: float, npc: Npc, follower: BotPathFollower) -> void:
 
 ## Picks a wander point inside the roam box and asks the follower for a
 ## route, retrying with fresh picks up to [member pick_attempts] times
-## (the follower snaps goals to standable ground and refuses climb-only
-## routes through forbid_climb).
+## (the follower snaps goals to standable ground; the body's capability
+## flags constrain which routes the search can return).
 func _pick_goal(npc: Npc, follower: BotPathFollower) -> bool:
 	for _attempt in pick_attempts:
 		var target: Vector2 = npc.global_position + Vector2(

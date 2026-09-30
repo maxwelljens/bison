@@ -3,6 +3,7 @@
 [ext_resource type="Script" uid="uid://hve0agplp722" path="res://Scripts/Mauser/mauser.gd" id="1_mausr"]
 [ext_resource type="Script" uid="uid://dtqu8nh2yy6b3" path="res://Scripts/NPC/npc_brain.gd" id="2_mausr"]
 [ext_resource type="Script" uid="uid://ugjn1c2vl1hk" path="res://Scripts/Pathfinding/platformer_pathfinder.gd" id="3_mausr"]
+[ext_resource type="Script" uid="uid://cqtt6llypli1l" path="res://Scripts/Pathfinding/path_tuning.gd" id="4_hoa0i"]
 [ext_resource type="Script" uid="uid://cxjgfjpp5e2ir" path="res://Scripts/Bot/bot_path_follower.gd" id="4_mausr"]
 [ext_resource type="Texture2D" uid="uid://mevtsv7atdv2" path="res://Textures/Tiles/Transparent/tile_0323.png" id="5_mausr"]
 [ext_resource type="Script" uid="uid://b15yq1fw3n6bv" path="res://Scripts/NPC/npc_roam.gd" id="6_mausr"]
@@ -12,6 +13,9 @@
 
 [sub_resource type="RectangleShape2D" id="RectangleShape2D_mauser"]
 size = Vector2(10, 11)
+
+[sub_resource type="Resource" id="Resource_scve6"]
+script = ExtResource("4_hoa0i")
 
 [sub_resource type="CircleShape2D" id="CircleShape2D_sense"]
 radius = 48.0
@@ -27,6 +31,7 @@ contact_area = NodePath("ContactArea")
 jump_velocity = -180.0
 jump_release_speed = 20.0
 sprite = NodePath("Sprite2D")
+can_climb = false
 
 [node name="Sprite2D" type="Sprite2D" parent="." unique_id=586405764]
 texture = ExtResource("5_mausr")
@@ -38,6 +43,7 @@ shape = SubResource("RectangleShape2D_mauser")
 [node name="Pathfinder" type="Node2D" parent="." unique_id=1892036367]
 z_index = 95
 script = ExtResource("3_mausr")
+tuning = SubResource("Resource_scve6")
 debug_draw = true
 debug_draw_explored = true
 
@@ -46,7 +52,6 @@ script = ExtResource("4_mausr")
 bot = NodePath("..")
 pathfinder = NodePath("../Pathfinder")
 click_to_move = false
-forbid_climb = true
 
 [node name="Brain" type="Node" parent="." unique_id=475028405 node_paths=PackedStringArray("npc", "follower", "pathfinder", "sense_area", "debug_label", "initial_state")]
 script = ExtResource("2_mausr")

@@ -50,6 +50,20 @@ const MAP_GROUP := "navigation"
 ## `navigation` group on the first grab (same convention as the pathfinder).
 @export var tilemap: TileMapLayer
 
+@export_category("Capabilities")
+## Whether the agent may jump. False prunes every jump-launch edge from the
+## pathfinding search, so the route never contains a JUMP waypoint. The motor
+## itself is unchanged; walking and gravity-driven falls still work.
+@export var can_jump: bool = true
+## Whether the agent may use ladders. False prunes every CLIMB edge from the
+## pathfinding search and makes [method try_enter_ladder] refuse, so chains
+## are never entered while walking or falling past them stays fine.
+@export var can_climb: bool = true
+## Whether the agent may drop through one-way platform surfaces. False prunes
+## every DROP_THROUGH edge from the pathfinding search and makes
+## [method drop_through] a no-op.
+@export var can_drop_through: bool = true
+
 ## Input state, written by the controller each physics frame.
 var input_left: bool = false
 var input_right: bool = false
@@ -89,15 +103,21 @@ func get_gravity_strength() -> float:
 	return _gravity
 
 
-## Kinematics snapshot of this bot's live physics for pathfinding requests.
+## Kinematics snapshot of this bot's live physics and capabilities for
+## pathfinding requests.
 func kinematics() -> AgentKinematics:
-	return AgentKinematics.new(jump_velocity, _gravity, move_speed, climb_speed)
+	return AgentKinematics.new(
+			jump_velocity, _gravity, move_speed, climb_speed,
+			can_jump, can_climb, can_drop_through)
 
 
 ## Pulses a drop-through: for [param duration] seconds the collision mask is
 ## zeroed so the body falls through one-way (and solid) tiles below. A short
-## hack; the mask is restored in [method _physics_process].
+## hack; the mask is restored in [method _physics_process]. A no-op when
+## [member can_drop_through] is false.
 func drop_through(duration: float = 0.12) -> void:
+	if not can_drop_through:
+		return
 	_drop_timer = duration
 
 
@@ -110,7 +130,10 @@ func is_climbing() -> bool:
 ## its feet ([param down] intent, descending off a landing above a chain),
 ## mirroring the player's held-intent grabs. On success enters the climb:
 ## the chain extents clamp it, and [member ladder_rung] names the rung.
+## Refuses outright when [member can_climb] is false.
 func try_enter_ladder(up: bool) -> bool:
+	if not can_climb:
+		return false
 	if _climbing:
 		return false
 	_resolve_tilemap()
