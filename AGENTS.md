@@ -173,7 +173,7 @@ commit them. The warren (hidden burrow system) is the colony home.
   flag and touch-kill through the overridable `on_contact_player` hook,
   the seam for non-lethal species), `npc_wander.gd` (`NpcWander`:
   reusable wander component), and three reusable states: `npc_roam.gd`
-  (wander + agitation accumulation), `npc_wary.gd` (stop & watch),
+  (wander + agitation accumulation), `npc_wary.gd` (wary beat: face, tint, give ground),
   `npc_pursue.gd` (chase + rage drain — a fixed chase budget; `calm_at`
   stands it down with the meter reset to 0). The brain references only
   `NpcState` and states are direct `NpcState` children, so new NPCs
@@ -287,8 +287,7 @@ commit them. The warren (hidden burrow system) is the colony home.
   Awaiting re-verification.
 - Known gaps (intentionally out of scope so far): no camera limits, no
   death UI/permadeath flow (DESIGN.md §9 unwired), no fall-specific art
-  (AIR still maps to the jump frames). Mauser: placeholder sprite, no
-  wary retreat, no creature audio. Per-agent pathfinding capability flags
+  (AIR still maps to the jump frames). Mauser: placeholder sprite, no creature audio. Per-agent pathfinding capability flags
   landed (`can_jump`/`can_climb`/`can_drop_through` on `PlatformerBot`,
   carried into the search through `AgentKinematics`): each prunes the
   matching edge family from the navigator's search, so the Mauser's
@@ -479,13 +478,21 @@ clear (solid tiles occlude, one-way platforms don't).
 | `reach_distance` | 6.0 px | "arrived" tolerance for a wander goal |
 | `walk_timeout` | 8.0 s | abandon a wander goal after this |
 
-`Wary` (`Scripts/NPC/npc_wary.gd`) — stop & watch:
+`Wary` (`Scripts/NPC/npc_wary.gd`) — give ground & watch:
 
 | Property | Default | Meaning |
 |---|---|---|
 | `calm_at` | 0.35 | falls back to Roam below this pressure |
 | `aggro_at` | 1.0 | pressure at which it turns (→ Pursue) |
 | `wary_tint` | yellow | `modulate` target in this state |
+| `retreat_distance` | 72.0 px | preferred clearance to back off to (≤ 0 = stand & watch) |
+| `retreat_speed` | 35.0 px/s | shuffle pace while giving ground |
+| `retreat_max_travel` | 96.0 px | total backing per wary episode (then it stands its ground) |
+| `retreat_replan_interval` | 0.2 s | retreat goal refresh while the player moves |
+
+Retreat ends early when the player leaves the bubble (unseen = pressure
+decays = defused). Keep following and it backs to full clearance — and
+then the meter finishes the story.
 
 `Pursue` (`Scripts/NPC/npc_pursue.gd`) — the chase:
 
