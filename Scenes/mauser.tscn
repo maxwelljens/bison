@@ -1,0 +1,100 @@
+[gd_scene format=3 uid="uid://basg53fyuc5ni"]
+
+[ext_resource type="Script" uid="uid://hve0agplp722" path="res://Scripts/Mauser/mauser.gd" id="1_mausr"]
+[ext_resource type="Script" uid="uid://dtqu8nh2yy6b3" path="res://Scripts/NPC/npc_brain.gd" id="2_mausr"]
+[ext_resource type="Script" uid="uid://ugjn1c2vl1hk" path="res://Scripts/Pathfinding/platformer_pathfinder.gd" id="3_mausr"]
+[ext_resource type="Script" uid="uid://cxjgfjpp5e2ir" path="res://Scripts/Bot/bot_path_follower.gd" id="4_mausr"]
+[ext_resource type="Texture2D" uid="uid://mevtsv7atdv2" path="res://Textures/Tiles/Transparent/tile_0323.png" id="5_mausr"]
+[ext_resource type="Script" uid="uid://b15yq1fw3n6bv" path="res://Scripts/NPC/npc_roam.gd" id="6_mausr"]
+[ext_resource type="Script" uid="uid://dpwrb2bi4e4x7" path="res://Scripts/NPC/npc_wary.gd" id="7_mausr"]
+[ext_resource type="Script" uid="uid://dvsomgjbra5wo" path="res://Scripts/NPC/npc_pursue.gd" id="8_mausr"]
+[ext_resource type="Script" uid="uid://blajdpo0pmu7p" path="res://Scripts/NPC/npc_wander.gd" id="9_mausr"]
+
+[sub_resource type="RectangleShape2D" id="RectangleShape2D_mauser"]
+size = Vector2(10, 11)
+
+[sub_resource type="CircleShape2D" id="CircleShape2D_sense"]
+radius = 48.0
+
+[sub_resource type="RectangleShape2D" id="RectangleShape2D_contact"]
+size = Vector2(12, 11)
+
+[node name="Mauser" type="CharacterBody2D" unique_id=1226682119 node_paths=PackedStringArray("contact_area", "sprite")]
+collision_layer = 4
+collision_mask = 3
+script = ExtResource("1_mausr")
+contact_area = NodePath("ContactArea")
+jump_velocity = -180.0
+jump_release_speed = 20.0
+sprite = NodePath("Sprite2D")
+
+[node name="Sprite2D" type="Sprite2D" parent="." unique_id=586405764]
+texture = ExtResource("5_mausr")
+
+[node name="CollisionShape2D" type="CollisionShape2D" parent="." unique_id=825975334]
+position = Vector2(0, 2.5)
+shape = SubResource("RectangleShape2D_mauser")
+
+[node name="Pathfinder" type="Node2D" parent="." unique_id=1892036367]
+z_index = 95
+script = ExtResource("3_mausr")
+debug_draw = true
+debug_draw_explored = true
+
+[node name="Follower" type="Node" parent="." unique_id=1685300783 node_paths=PackedStringArray("bot", "pathfinder")]
+script = ExtResource("4_mausr")
+bot = NodePath("..")
+pathfinder = NodePath("../Pathfinder")
+click_to_move = false
+forbid_climb = true
+
+[node name="Brain" type="Node" parent="." unique_id=475028405 node_paths=PackedStringArray("npc", "follower", "pathfinder", "sense_area", "debug_label", "initial_state")]
+script = ExtResource("2_mausr")
+npc = NodePath("..")
+follower = NodePath("../Follower")
+pathfinder = NodePath("../Pathfinder")
+sense_area = NodePath("../SenseArea")
+debug_label = NodePath("../DebugLabel")
+initial_state = NodePath("Roam")
+
+[node name="Roam" type="Node" parent="Brain" unique_id=805285401 node_paths=PackedStringArray("wary_state", "aggressive_state", "wander")]
+script = ExtResource("6_mausr")
+wary_state = NodePath("../Wary")
+aggressive_state = NodePath("../Pursue")
+wander = NodePath("Wander")
+
+[node name="Wander" type="Node" parent="Brain/Roam" unique_id=1678120074]
+script = ExtResource("9_mausr")
+
+[node name="Wary" type="Node" parent="Brain" unique_id=1048359536 node_paths=PackedStringArray("roam_state", "aggressive_state")]
+script = ExtResource("7_mausr")
+roam_state = NodePath("../Roam")
+aggressive_state = NodePath("../Pursue")
+
+[node name="Pursue" type="Node" parent="Brain" unique_id=769967059 node_paths=PackedStringArray("calm_state")]
+script = ExtResource("8_mausr")
+calm_state = NodePath("../Roam")
+
+[node name="SenseArea" type="Area2D" parent="." unique_id=709585258]
+collision_layer = 0
+collision_mask = 8
+
+[node name="CollisionShape2D" type="CollisionShape2D" parent="SenseArea" unique_id=979892071]
+shape = SubResource("CircleShape2D_sense")
+
+[node name="ContactArea" type="Area2D" parent="." unique_id=1390447816]
+collision_layer = 0
+collision_mask = 8
+
+[node name="CollisionShape2D" type="CollisionShape2D" parent="ContactArea" unique_id=269175556]
+position = Vector2(0, 2.5)
+shape = SubResource("RectangleShape2D_contact")
+
+[node name="DebugLabel" type="Label" parent="." unique_id=1264866245]
+offset_left = -24.0
+offset_top = -28.0
+offset_right = 24.0
+offset_bottom = -16.0
+theme_override_font_sizes/font_size = 8
+text = "0.00 DOCILE"
+horizontal_alignment = 1

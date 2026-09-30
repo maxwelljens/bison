@@ -8,6 +8,7 @@
 [ext_resource type="PackedScene" uid="uid://c5nqvi1g3p55l" path="res://Scenes/bot.tscn" id="3_4k50d"]
 [ext_resource type="PackedScene" uid="uid://beomhqbeouj18" path="res://Scenes/chest.tscn" id="7_ub4j8"]
 [ext_resource type="Script" uid="uid://dphjmjusdjmux" path="res://Scripts/Tilemap/tile_palette.gd" id="8_pal"]
+[ext_resource type="PackedScene" path="res://Scenes/mauser.tscn" id="9_mausr"]
 
 [node name="TestLevel" type="Node2D" unique_id=277619520]
 
@@ -60,3 +61,6 @@ move_speed = 65.0
 
 [node name="Chest" parent="." unique_id=348243419 instance=ExtResource("7_ub4j8")]
 position = Vector2(-32, 8)
+
+[node name="Mauser" parent="." instance=ExtResource("9_mausr")]
+position = Vector2(140, 8)
