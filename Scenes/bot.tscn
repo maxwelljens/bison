@@ -9,6 +9,7 @@
 size = Vector2(10, 11)
 
 [node name="Bot" type="CharacterBody2D" unique_id=181996794 node_paths=PackedStringArray("sprite")]
+collision_layer = 4
 collision_mask = 3
 script = ExtResource("1_gdc2h")
 jump_velocity = -180.0
