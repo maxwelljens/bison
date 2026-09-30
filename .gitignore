@@ -5,9 +5,5 @@
 # Fetched tutorial scrapes
 docs/theory/
 
-# Agent tooling state
-.crush/
-.opencode/
-
 # Codemap agent tooling state
 .codemap/
