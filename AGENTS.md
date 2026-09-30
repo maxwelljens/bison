@@ -41,8 +41,12 @@ commit them. The warren (hidden burrow system) is the colony home.
 - `Levels/` — level scenes. `test_level.tscn` is the main scene.
 - `Scenes/` — reusable scenes: `player.tscn` (Player root: state-machine
   children, `AnimatedSprite2D`, collision, camera), `bot.tscn`
-  (Bot root: `Sprite2D`, collision, `BotPathFollower`, `Pathfinder`) and
-  `chest.tscn` (Chest root: `Sprite2D`, `Trigger` Area2D, `Sfx`, `Vfx`).
+  (Bot root: `Sprite2D`, collision, `BotPathFollower`, `Pathfinder`),
+  `chest.tscn` (Chest root: `Sprite2D`, `Trigger` Area2D, `Sfx`, `Vfx`)
+  and `mauser.tscn` (Mauser root: `Sprite2D`, collision, `Pathfinder`,
+  `Follower`, `Brain` with `Roam`/`Wary`/`Pursue` state children (plus
+  `Roam/Wander`), `SenseArea`/`ContactArea` detector areas,
+  `DebugLabel`).
 - `Scripts/` — GDScript sources: `Player/` (`player.gd`, `player_state.gd`,
   `grounded.gd`, `airborne.gd`, `player_animator.gd`,
   `player_sfx.gd`); `Pathfinding/`
@@ -50,13 +54,16 @@ commit them. The warren (hidden burrow system) is the colony home.
   `path_waypoint.gd`, `waypoint_classifier.gd`, `platformer_navigator.gd`,
   `path_tuning.gd`, `agent_kinematics.gd`, `platformer_pathfinder.gd`,
   `debug/grid_debug_draw.gd`); `Bot/`
-  (`platformer_bot.gd`, `bot_path_follower.gd`); `Chest/`
+  (`platformer_bot.gd`, `bot_path_follower.gd`); `NPC/`
+  (`npc.gd`, `npc_state.gd`, `npc_brain.gd`, `npc_wander.gd`,
+  `npc_roam.gd`, `npc_wary.gd`, `npc_pursue.gd`); `Mauser/`
+  (`mauser.gd`); `Chest/`
   (`chest.gd`, `chest_sfx.gd`, `chest_vfx.gd`).
 - `Textures/` — art: `Tilemap/` (tileset textures), `Tiles/Default` and
   `Tiles/Transparent` (individual tiles), `Sample.png`.
 - `AGENTS.md` — this file.
 
-## Current state (as of 2026-09-25)
+## Current state (as of 2026-09-30)
 
 - `Levels/test_level.tscn` — `TestLevel` (Node2D) contains:
   - `TileMapLayer` — tile data plus a `TileSet` with a physics layer on
@@ -67,7 +74,7 @@ commit them. The warren (hidden burrow system) is the colony home.
 	fires a `ChestVfx` particle/flash burst and emits `Chest.opened`.
 	The chest stays open visually and remains interactable — every
 	in-range press re-emits `opened` (the loot/inventory increment will
-	hook the signal). The trigger counts only `CharacterBody2D` overlaps
+	hook the signal). The trigger detects the Player physics layer and filters `is Player`,
 	so static tile collision never fakes proximity. Feedback components
 	degrade silently when unassigned (no art/sound/refs = no errors).
 	`texture_open` ships unassigned (open-chest art pending); texture
@@ -147,6 +154,44 @@ commit them. The warren (hidden burrow system) is the colony home.
   `Scripts/Tilemap/ladder_map.gd` (`LadderMap`) is the single query API
   (is-ladder, run extents, cell edges, standable tops) used by the
   player, the grid, the pathfinder and the bot.
+- Physics layers (`project.godot`): 1 `World` (solid tiles), 2 `One-way`,
+  3 `NPC`, 4 `Player`. NPC and Player bodies mask only World+One-way, so
+  **NPCs are not solid** — creatures and the player pass through each
+  other while both collide with tiles. Detector areas that care about the
+  player (chest `Trigger`, Mauser `SenseArea`/`ContactArea`) mask the
+  Player layer and filter `body is Player`.
+- NPC framework (`Scripts/NPC/`) — a generic finite-state-machine stack
+  mirroring the player's (`player_state.gd` pattern): `npc_state.gd`
+  (`NpcState` base: `setup`/`enter`/`exit`/`update_pressure` plus a
+  custom `physics_process` that is never engine-ticked), `npc_brain.gd`
+  (`NpcBrain`: the machine host — senses the player (bubble + LOS ray on
+  the World layer only), owns the 0..1 pressure value and cross-state
+  rates, executes transitions (states call `brain.request(next)`,
+  applied after the state's frame, like the player's post-state
+  transition block), drives the tint lerp and debug label),
+  `npc.gd` (`Npc extends PlatformerBot`: generic body — `aggressive`
+  flag and touch-kill through the overridable `on_contact_player` hook,
+  the seam for non-lethal species), `npc_wander.gd` (`NpcWander`:
+  reusable wander component), and three reusable states: `npc_roam.gd`
+  (wander + agitation accumulation), `npc_wary.gd` (stop & watch),
+  `npc_pursue.gd` (chase + rage drain — a fixed chase budget; `calm_at`
+  stands it down with the meter reset to 0). The brain references only
+  `NpcState` and states are direct `NpcState` children, so new NPCs
+  reuse the machine untouched: copy the `Brain` subtree of
+  `Scenes/mauser.tscn`, wire `npc`/`follower`/`pathfinder`, retune per
+  node. A new behaviour is one `NpcState` script; a new archetype adds
+  states without editing `NpcBrain`.
+- The Mauser (`Scenes/mauser.tscn`, `Scripts/Mauser/mauser.gd`) — the
+  first NPC: a configured instance of the NPC framework — docile
+  territorial fauna (see DESIGN.md §6). `mauser.gd` is the thin species
+  hook (`class_name Mauser extends Npc`, species behaviour belongs
+  there); the `Brain` tree carries all tuning (see the Mauser tuning
+  reference below) and a `test_level.tscn` instance is placed for play
+  feedback. Its follower runs `click_to_move` off and `forbid_climb` on:
+  it jumps gaps but never climbs ladders, so chains are an escape.
+- `Player.kill()` — public one-touch death entry for external causes
+  (creature contact, traps); fall deaths keep using the internal tiers.
+- Pathfinding retarget semantics (probe-fixed 2026-09-30): `BotPathFollower.move_to` **commits to in-flight jumps** — while the bot is airborne a new target is queued (newest wins; refused routes change nothing) and replanned on landing, and mid-flight input release is suppressed (the in-flight steer continues), so rapid retargeting never truncates a jump or dead-sticks a body mid-air. Goal snapping (`PlatformerGrid.snap_to_standable`) is vertically weighted and side-aware — `PathTuning.goal_snap_side_cells` (8) and `goal_snap_vertical_weight` (3.0), with `goal_snap_max_cells` bounding the descent — and the navigator refuses unsupported goals (no ground/one-way below and not a ladder rung): a target floating over a gap snaps to a landing lip at height or the route is refused, never the chasm floor. Regression harness (throwaway, copied back into the project root to run): `/tmp/opencode/bison-probe-retarget/_probe_retarget.gd` — stairs/gap/mid-air retarget assertions, ~10 s headless.
 - Scene-level tuning overrides on the Player node (user-tuned in the
   Inspector; the scene is the source of truth, currently
   `move_speed = 50.0`, `jump_velocity = -150.0`). Script defaults differ
@@ -240,8 +285,11 @@ commit them. The warren (hidden burrow system) is the colony home.
   classify as FALL through the same rule.
   Awaiting re-verification.
 - Known gaps (intentionally out of scope so far): no camera limits, no
-  death UI/permadeath flow (DESIGN.md §8 unwired), no fall-specific art
-  (AIR still maps to the jump frames).
+  death UI/permadeath flow (DESIGN.md §9 unwired), no fall-specific art
+  (AIR still maps to the jump frames). Mauser: placeholder sprite, no
+  wary retreat, no creature audio. Pathfinding has no per-agent
+  capability flags yet — the Mauser's "never climbs ladders" rule is the
+  crude `forbid_climb` route filter on `BotPathFollower`.
 
 ## Coding directives (MUST follow)
 
@@ -310,6 +358,14 @@ feedback, only the user can. Therefore:
 - Load check: `godot --headless --path . --quit`
 - Note: headless/editor runs may normalize scene files (stamp `uid=` onto
   ext_resources, generate `*.gd.uid` companions). Expected and harmless.
+- Note: `--check-only --script` cannot resolve the `Loot` autoload
+  identifier (check-mode scoping), so checking `player.gd`, `dead.gd` or
+  `mauser.gd` reports `Identifier not found: Loot` out of `dead.gd` and
+  cascades. Pre-existing; the `--quit` load check covers those scripts.
+- Note: game runs do not rescan scripts — after adding a `class_name`,
+  rebuild `.godot/global_script_class_cache.cfg` once with
+  `godot --headless --path . --editor --quit`, or dependents fail with
+  `Could not find type ...`.
 
 ## Appendix: hand-editing Godot files
 
@@ -379,3 +435,60 @@ the Player node take precedence.
 | `footstep_interval` (`PlayerSfx`) | 0.3 s | seconds between footsteps while running |
 | `voice_count` (`PlayerSfx`) | 4 | pooled voices; oldest is reused beyond this many overlapping sounds |
 | `volume_db` (`PlayerSfx`) | 0.0 dB | volume applied to every SFX voice |
+
+## Mauser tuning reference
+
+The Mauser is a configured instance of the NPC framework: tuning is
+spread over the node whose behaviour reads it (state thresholds live
+with the state that acts on them). Motor values (`jump_velocity`, …)
+stay on the body as with the Bot. The personal-space bubble is the
+`SenseArea` circle radius in the scene (≈48 px): "invaded" means the
+player's body overlaps it. Sensing = in the bubble AND line of sight
+clear (solid tiles occlude, one-way platforms don't).
+
+`Brain` (`Scripts/NPC/npc_brain.gd`) — cross-state temperament:
+
+| Property | Default | Meaning |
+|---|---|---|
+| `fill_time` | 2.0 s | 0→1 pressure while the player is sensed |
+| `decay_time` | 1.5 s | 1→0 pressure while not sensed (roam/wary) |
+| `tint_lerp_speed` | 8.0 | blend speed toward the current state's tint |
+
+`Roam` (`Scripts/NPC/npc_roam.gd`) — docile wander:
+
+| Property | Default | Meaning |
+|---|---|---|
+| `wary_at` | 0.35 | pressure at which it stops to watch (→ Wary) |
+| `aggro_at` | 1.0 | pressure at which it turns (→ Pursue) |
+| `calm_tint` | white | `modulate` target in this state |
+
+`Wander` (`Scripts/NPC/npc_wander.gd`, under `Roam`) — ambient movement:
+
+| Property | Default | Meaning |
+|---|---|---|
+| `speed` | 25.0 px/s | wander pace (applied to `move_speed`) |
+| `radius` | 128.0 px | how far the next wander point is picked |
+| `height_ratio` | 0.5 | y spread of wander picks (× `radius`) |
+| `pause_min` / `pause_max` | 1.0 / 3.0 s | idle between wanders |
+| `pick_attempts` | 4 | fresh picks per goal before giving up |
+| `reach_distance` | 6.0 px | "arrived" tolerance for a wander goal |
+| `walk_timeout` | 8.0 s | abandon a wander goal after this |
+
+`Wary` (`Scripts/NPC/npc_wary.gd`) — stop & watch:
+
+| Property | Default | Meaning |
+|---|---|---|
+| `calm_at` | 0.35 | falls back to Roam below this pressure |
+| `aggro_at` | 1.0 | pressure at which it turns (→ Pursue) |
+| `wary_tint` | yellow | `modulate` target in this state |
+
+`Pursue` (`Scripts/NPC/npc_pursue.gd`) — the chase:
+
+| Property | Default | Meaning |
+|---|---|---|
+| `calm_at` | 0.2 | stands down below this pressure (meter resets to 0) |
+| `pursuit_speed` | 58.0 px/s | chase pace (above the player's tuned 50) |
+| `reroute_interval` | 0.25 s | how often the chase re-routes |
+| `rage_time` | 4.0 s | chase budget while the player is sensed |
+| `lost_contact_rage_time` | 2.0 s | chase budget once contact breaks |
+| `aggressive_tint` | red | `modulate` target in this state |
