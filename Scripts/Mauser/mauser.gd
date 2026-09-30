@@ -1,3 +1,4 @@
+@icon("res://addons/at-icons/node2d/dragon.svg")
 class_name Mauser
 extends Npc
 ## The Mauser: territorial fauna (see docs/DESIGN.md §6). Docile roving

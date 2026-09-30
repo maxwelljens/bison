@@ -1,3 +1,4 @@
+@icon("res://addons/at-icons/node/brain.svg")
 class_name NpcBrain
 extends Node
 ## Generic finite-state-machine host for NPCs, mirroring the [Player]'s

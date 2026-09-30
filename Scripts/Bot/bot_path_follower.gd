@@ -1,3 +1,4 @@
+@icon("res://addons/at-icons/node/pin.svg")
 class_name BotPathFollower
 extends Node
 ## Waypoint executor: turns a computed path into bot inputs.
