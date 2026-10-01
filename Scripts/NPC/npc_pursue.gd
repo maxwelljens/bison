@@ -5,6 +5,11 @@ extends NpcState
 ## and re-routes at the player's live position until the rage budget
 ## burns down to [member calm_at].
 
+func _init() -> void:
+	# The chase announces itself once as it becomes current.
+	enter_sfx = NpcSfx.Event.AGGRO_CRY
+
+
 @export_category("Transitions")
 ## State entered when the pressure drops to [member calm_at]; the meter is
 ## reset to zero first — that reset is the player's window to leave.
@@ -57,6 +62,8 @@ func physics_process(delta: float) -> void:
 	if _reroute_timer <= 0.0:
 		_reroute_timer = reroute_interval
 		_pursue()
+	if brain.npc != null:
+		intent = Intent.CHARGE if absf(brain.npc.velocity.x) > 1.0 else Intent.IDLE
 	if brain.pressure <= calm_at:
 		# The meter restarting from zero is the player's window to leave.
 		brain.pressure = 0.0

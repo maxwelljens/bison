@@ -14,6 +14,14 @@
 [ext_resource type="Script" uid="uid://dpwrb2bi4e4x7" path="res://Scripts/NPC/npc_wary.gd" id="7_mausr"]
 [ext_resource type="Script" uid="uid://dvsomgjbra5wo" path="res://Scripts/NPC/npc_pursue.gd" id="8_mausr"]
 [ext_resource type="Script" uid="uid://blajdpo0pmu7p" path="res://Scripts/NPC/npc_wander.gd" id="9_mausr"]
+[ext_resource type="Script" uid="uid://ec554in0chi2" path="res://Scripts/NPC/npc_idle_life.gd" id="10_mausr"]
+[ext_resource type="Script" uid="uid://dm4ed1eea612o" path="res://Scripts/NPC/npc_animator.gd" id="11_mausr"]
+[ext_resource type="Script" uid="uid://0pa3x8bg4d26" path="res://Scripts/NPC/npc_sfx.gd" id="12_mausr"]
+[ext_resource type="AudioStream" uid="uid://byqt566hkcwsb" path="res://Audio/SFX/General Sounds/Interactions/sfx_sounds_interaction24.ogg" id="18_w8fjl"]
+[ext_resource type="AudioStream" uid="uid://b8sxfec4at7as" path="res://Audio/SFX/General Sounds/Weird Sounds/sfx_sound_nagger1.ogg" id="19_l8g5d"]
+[ext_resource type="AudioStream" uid="uid://ca8ou7ppw67ij" path="res://Audio/SFX/General Sounds/Weird Sounds/sfx_sound_mechanicalnoise4.ogg" id="20_uqbjk"]
+[ext_resource type="AudioStream" uid="uid://cx2qoo6arbv0x" path="res://Audio/SFX/Movement/Footsteps/sfx_movement_footstepsloop4_fast.ogg" id="21_uqbjk"]
+[ext_resource type="AudioStream" uid="uid://b7mhhbd0g542o" path="res://Audio/SFX/Movement/Footsteps/sfx_movement_footstepsloop4_slow.ogg" id="22_tdnm8"]
 
 [sub_resource type="SpriteFrames" id="SpriteFrames_fmu24"]
 animations = [{
@@ -65,16 +73,16 @@ collision_layer = 4
 collision_mask = 3
 script = ExtResource("1_mausr")
 contact_area = NodePath("ContactArea")
+acceleration = 180.0
+friction = 120.0
 jump_velocity = -180.0
 jump_release_speed = 20.0
 sprite = NodePath("AnimatedSprite2D")
-can_climb = false
 
 [node name="AnimatedSprite2D" type="AnimatedSprite2D" parent="." unique_id=344478672]
 sprite_frames = SubResource("SpriteFrames_fmu24")
 animation = &"idle"
 autoplay = "idle"
-frame_progress = 0.8859662
 
 [node name="CollisionShape2D" type="CollisionShape2D" parent="." unique_id=825975334]
 position = Vector2(0, 2.5)
@@ -93,13 +101,20 @@ bot = NodePath("..")
 pathfinder = NodePath("../Pathfinder")
 click_to_move = false
 
-[node name="Brain" type="Node" parent="." unique_id=475028405 node_paths=PackedStringArray("npc", "follower", "pathfinder", "sense_area", "debug_label", "initial_state")]
+[node name="IdleLife" type="Node" parent="." unique_id=1900232885 node_paths=PackedStringArray("npc")]
+script = ExtResource("10_mausr")
+npc = NodePath("..")
+bob_amplitude = 0.01
+
+[node name="Brain" type="Node" parent="." unique_id=475028405 node_paths=PackedStringArray("npc", "follower", "pathfinder", "sense_area", "debug_label", "animator", "sfx", "initial_state")]
 script = ExtResource("2_mausr")
 npc = NodePath("..")
 follower = NodePath("../Follower")
 pathfinder = NodePath("../Pathfinder")
 sense_area = NodePath("../SenseArea")
 debug_label = NodePath("../DebugLabel")
+animator = NodePath("../Animator")
+sfx = NodePath("../Sfx")
 initial_state = NodePath("Roam")
 
 [node name="Roam" type="Node" parent="Brain" unique_id=805285401 node_paths=PackedStringArray("wary_state", "aggressive_state", "wander")]
@@ -119,6 +134,21 @@ aggressive_state = NodePath("../Pursue")
 [node name="Pursue" type="Node" parent="Brain" unique_id=769967059 node_paths=PackedStringArray("calm_state")]
 script = ExtResource("8_mausr")
 calm_state = NodePath("../Roam")
+rage_time = 60.0
+lost_contact_rage_time = 60.0
+
+[node name="Animator" type="Node" parent="." unique_id=768537066 node_paths=PackedStringArray("sprite")]
+script = ExtResource("11_mausr")
+sprite = NodePath("../AnimatedSprite2D")
+
+[node name="Sfx" type="AudioStreamPlayer2D" parent="." unique_id=2067350539 node_paths=PackedStringArray("npc")]
+attenuation = 10.0
+script = ExtResource("12_mausr")
+npc = NodePath("..")
+sound_idle_call = ExtResource("18_w8fjl")
+sound_wary_warning = ExtResource("19_l8g5d")
+sound_aggro_cry = ExtResource("20_uqbjk")
+sound_footsteps = Array[AudioStream]([ExtResource("21_uqbjk"), ExtResource("22_tdnm8")])
 
 [node name="SenseArea" type="Area2D" parent="." unique_id=709585258]
 collision_layer = 0

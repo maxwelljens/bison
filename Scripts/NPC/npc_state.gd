@@ -13,6 +13,23 @@ extends Node
 ## The owning brain; assigned via [method setup].
 var brain: NpcBrain
 
+## Shorthand for the animator's intent enum, so states read
+## [code]Intent.WALK[/code] instead of the fully-qualified
+## [enum NpcAnimator.Intent].
+const Intent = NpcAnimator.Intent
+
+## Animation intent the brain forwards to the [NpcAnimator] each frame;
+## states rewrite it in physics_process to say what to show right now.
+var intent: NpcAnimator.Intent = NpcAnimator.Intent.IDLE
+
+## When true, the brain faces the body at the live player instead of its
+## heading (the wary beat watches while it withdraws).
+@export var facing_to_player: bool = false
+
+## One-shot sound the brain plays when this state becomes current
+## (NONE = silent).
+@export var enter_sfx: NpcSfx.Event = NpcSfx.Event.NONE
+
 
 ## Called once from the brain's one-shot startup, before any state logic
 ## runs.

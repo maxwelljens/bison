@@ -8,16 +8,29 @@
 [sub_resource type="RectangleShape2D" id="RectangleShape2D_bot"]
 size = Vector2(10, 11)
 
+[sub_resource type="SpriteFrames" id="SpriteFrames_bot"]
+animations = [{
+"frames": [{
+"duration": 1.0,
+"texture": ExtResource("2_dl46b")
+}],
+"loop": 1,
+"name": &"idle",
+"speed": 5.0
+}]
+
 [node name="Bot" type="CharacterBody2D" unique_id=181996794 node_paths=PackedStringArray("sprite")]
 collision_layer = 4
 collision_mask = 3
 script = ExtResource("1_gdc2h")
 jump_velocity = -180.0
 jump_release_speed = 20.0
-sprite = NodePath("Sprite2D")
+sprite = NodePath("AnimatedSprite2D")
 
-[node name="Sprite2D" type="Sprite2D" parent="." unique_id=423349199]
-texture = ExtResource("2_dl46b")
+[node name="AnimatedSprite2D" type="AnimatedSprite2D" parent="." unique_id=423349199]
+sprite_frames = SubResource("SpriteFrames_bot")
+animation = &"idle"
+autoplay = "idle"
 
 [node name="CollisionShape2D" type="CollisionShape2D" parent="." unique_id=1469685057]
 position = Vector2(0, 2.5)

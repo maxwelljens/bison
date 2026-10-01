@@ -41,6 +41,8 @@ func physics_process(delta: float) -> void:
 	if wander != null and brain.npc != null and brain.follower != null \
 			and brain.pathfinder != null:
 		wander.tick(delta, brain.npc, brain.follower)
+	if brain.npc != null:
+		intent = Intent.WALK if absf(brain.npc.velocity.x) > 1.0 else Intent.IDLE
 	if brain.pressure >= aggro_at:
 		if aggressive_state != null:
 			brain.request(aggressive_state)

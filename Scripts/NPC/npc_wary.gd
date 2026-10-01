@@ -6,6 +6,13 @@ extends NpcState
 ## its preferred clearance, a reluctant creature gives ground first — it
 ## backs directly away up to a per-episode budget, then stands and watches.
 
+func _init() -> void:
+	# Wary watches the player while backing away (facing is forwarded by
+	# the brain), and warns once as it becomes current.
+	facing_to_player = true
+	enter_sfx = NpcSfx.Event.WARY_WARN
+
+
 @export_category("Transitions")
 ## State entered when the pressure falls below [member calm_at].
 @export var roam_state: NpcState
@@ -64,13 +71,14 @@ func exit() -> void:
 
 
 ## Backs away from a sensed, too-close player within the episode budget,
-## then holds and watches; faces the player every frame (the last sprite
-## write, so the motor's heading flip cannot win) and checks this frame's
-## pressure for a transition out. Pressure keeps accumulating through the
-## base rule (no override here).
+## then holds and watches; reports the RETREAT/WARY intent (the brain
+## forwards facing to the player while this state watches) and checks this
+## frame's pressure for a transition out. Pressure keeps accumulating
+## through the base rule (no override here).
 func physics_process(delta: float) -> void:
 	_update_retreat(delta)
-	_face_player()
+	if brain.npc != null:
+		intent = Intent.RETREAT if absf(brain.npc.velocity.x) > 1.0 else Intent.WARY
 	if brain.pressure >= aggro_at:
 		brain.request(aggressive_state)
 	elif brain.pressure < calm_at:
@@ -150,16 +158,3 @@ func _clamp_to_budget(goal: Vector2) -> Vector2:
 func _hold() -> void:
 	if brain.follower != null:
 		brain.follower.stop()
-
-
-## Points the sprite at the player without turning its back; called as the
-## last behaviour of the frame so the motor's own heading flip cannot win.
-func _face_player() -> void:
-	if brain.npc == null or brain.npc.sprite == null \
-			or not is_instance_valid(brain.player):
-		return
-	var dx: float = brain.player.global_position.x \
-			- brain.npc.global_position.x
-	if dx != 0.0:
-		# Same facing convention as PlatformerBot: flip_h when heading left.
-		brain.npc.sprite.flip_h = dx < 0.0

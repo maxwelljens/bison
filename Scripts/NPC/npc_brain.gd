@@ -33,6 +33,11 @@ const WORLD_MASK := 1
 @export var sense_area: Area2D
 ## Optional pressure/state readout, e.g. "0.72 Pursue"; null = silent.
 @export var debug_label: Label
+## Presentation: maps the current state's intent onto the creature's
+## SpriteFrames and owns its facing.
+@export var animator: NpcAnimator
+## Presentation: pooled event sounds (state entry cues, landings, steps).
+@export var sfx: NpcSfx
 ## State node entered on startup; null = the brain stays idle (silent).
 @export var initial_state: NpcState
 
@@ -92,6 +97,7 @@ func _physics_process(delta: float) -> void:
 		_transition(next)
 	_update_tint(delta)
 	_update_debug_label()
+	_update_presentation()
 
 
 ## A state asks to leave: the brain applies it after the state's frame
@@ -115,6 +121,8 @@ func _transition(next: NpcState) -> void:
 	previous.exit()
 	_current = next
 	_current.enter(previous)
+	if sfx != null:
+		sfx.play_event(_current.enter_sfx)
 
 
 ## A player inside the bubble becomes the sensed target.
@@ -157,3 +165,31 @@ func _update_debug_label() -> void:
 		return
 	debug_label.text = "%.2f %s" % [pressure,
 			_current.name if _current != null else "-"]
+
+
+## Forwards the current state's presentation to the animator: its intent
+## (overridden to JUMP while airborne — the NPC has no Air state) and its
+## facing. Every reference is null-guarded; unassigned presentation is a
+## silent no-op.
+func _update_presentation() -> void:
+	if animator == null:
+		return
+	var current_intent := NpcAnimator.Intent.IDLE
+	if _current != null:
+		current_intent = _current.intent
+	if npc != null and not npc.is_on_floor():
+		current_intent = NpcAnimator.Intent.JUMP
+	animator.set_intent(current_intent)
+	animator.set_facing(_facing_direction())
+
+
+## The direction to face this frame: toward the live player when the
+## current state watches it, else the body's heading, else 0 (keep the
+## last facing).
+func _facing_direction() -> float:
+	if npc != null and _current != null and _current.facing_to_player \
+			and is_instance_valid(player):
+		return signf(player.global_position.x - npc.global_position.x)
+	if npc != null and absf(npc.velocity.x) > 1.0:
+		return signf(npc.velocity.x)
+	return 0.0
