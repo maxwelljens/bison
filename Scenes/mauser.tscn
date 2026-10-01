@@ -78,6 +78,7 @@ friction = 120.0
 jump_velocity = -180.0
 jump_release_speed = 20.0
 sprite = NodePath("AnimatedSprite2D")
+can_climb = true
 
 [node name="AnimatedSprite2D" type="AnimatedSprite2D" parent="." unique_id=344478672]
 sprite_frames = SubResource("SpriteFrames_fmu24")

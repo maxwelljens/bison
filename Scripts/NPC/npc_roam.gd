@@ -27,6 +27,9 @@ extends NpcState
 ## Takes the wander pace and a fresh pause, clears any route still live
 ## from the previous state, and aims the tint at calm.
 func enter(_previous: NpcState) -> void:
+	# Entry intent: the transition frame must not show the predecessor's
+	# intent while this state runs its first tick.
+	intent = Intent.IDLE
 	if wander != null:
 		wander.start(brain.npc)
 	if brain.follower != null:

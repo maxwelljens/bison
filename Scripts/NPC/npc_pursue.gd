@@ -43,6 +43,9 @@ var _reroute_timer: float = 0.0
 ## rule to anyone already standing in the contact zone, aims the tint and
 ## fires the first re-route immediately.
 func enter(_previous: NpcState) -> void:
+	# Entry intent: the transition frame must not show the predecessor's
+	# intent while this state runs its first tick.
+	intent = Intent.CHARGE
 	if brain.npc != null:
 		brain.npc.aggressive = true
 		brain.npc.move_speed = pursuit_speed

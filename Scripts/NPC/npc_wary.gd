@@ -26,7 +26,12 @@ func _init() -> void:
 @export_category("Retreat")
 ## Preferred centre-to-centre clearance in px: while the player is sensed
 ## and closer than this, the creature backs directly away. 0 disables
-## retreat (stand-and-watch species).
+## retreat (stand-and-watch species). Defuse invariant: this must exceed
+## [member NpcBrain.sense_area]'s circle radius + the player's collision
+## half-extent + [member BotPathFollower.reach_tolerance], and
+## [member retreat_max_travel] must be at least this — otherwise the
+## retreat cannot push the player out of the bubble and the pressure
+## fills instead of defusing (this state warns once when it breaks).
 @export_range(0.0, 256.0, 1.0, "suffix:px") var retreat_distance: float = 72.0
 ## Backing pace in px/s, applied to move_speed on entry (a nervous shuffle
 ## between the wander and pursuit paces).
@@ -48,11 +53,18 @@ func _init() -> void:
 var _episode_origin: Vector2 = Vector2.ZERO
 # Seconds until the next retreat goal refresh.
 var _replan_timer: float = 0.0
+# One-shot defuse-invariant check flag: the relation is verified once, on
+# the first frame where every reference resolves (see
+# _check_defuse_invariant).
+var _invariant_checked: bool = false
 
 
 ## Halts any live route, records the episode origin, takes the retreat pace
 ## when retreat is enabled and aims the tint at the alert colour.
 func enter(_previous: NpcState) -> void:
+	# Entry intent: the transition frame must not show the predecessor's
+	# intent while this state runs its first tick.
+	intent = Intent.WARY
 	if brain.follower != null:
 		brain.follower.stop()
 	if brain.npc != null:
@@ -76,6 +88,7 @@ func exit() -> void:
 ## frame's pressure for a transition out. Pressure keeps accumulating
 ## through the base rule (no override here).
 func physics_process(delta: float) -> void:
+	_check_defuse_invariant()
 	_update_retreat(delta)
 	if brain.npc != null:
 		intent = Intent.RETREAT if absf(brain.npc.velocity.x) > 1.0 else Intent.WARY
@@ -88,6 +101,70 @@ func physics_process(delta: float) -> void:
 ## True when [member retreat_distance] is positive (retreat enabled).
 func _retreat_enabled() -> bool:
 	return retreat_distance > 0.0
+
+
+## One-shot (per scene load) sanity check of the defuse invariant: the
+## retreat must drive the player out of the personal-space bubble
+## ([member NpcBrain.sense_area]) and the episode budget must cover one
+## full retreat. Runs once, on the first frame where a live player
+## resolves, warning once per broken relation; any unresolved reference
+## makes it a silent no-op.
+func _check_defuse_invariant() -> void:
+	if _invariant_checked or brain == null:
+		return
+	if not is_instance_valid(brain.player):
+		return
+	var sense_radius := _sense_radius()
+	var player_extent := _player_half_extent()
+	var reach := _follower_reach()
+	if sense_radius < 0.0 or player_extent < 0.0 or reach < 0.0:
+		return
+	_invariant_checked = true
+	var minimum := sense_radius + player_extent + reach
+	if retreat_distance <= minimum:
+		push_warning(
+			"NpcWary defuse invariant broken: retreat_distance (%.1f) must exceed SenseArea.radius + player half-extent + Follower.reach_tolerance (%.1f + %.1f + %.1f = %.1f), or the retreat cannot push the player out of the bubble."
+			% [retreat_distance, sense_radius, player_extent, reach, minimum])
+	if retreat_max_travel < retreat_distance:
+		push_warning(
+			"NpcWary defuse invariant broken: retreat_max_travel (%.1f) must be at least retreat_distance (%.1f), or the backing budget cannot reach the preferred clearance."
+			% [retreat_max_travel, retreat_distance])
+
+
+## The sense bubble's collision-circle radius, or -1 when unresolved.
+func _sense_radius() -> float:
+	if brain.sense_area == null:
+		return -1.0
+	for child in brain.sense_area.get_children():
+		var shape_node := child as CollisionShape2D
+		if shape_node == null:
+			continue
+		var circle := shape_node.shape as CircleShape2D
+		if circle != null:
+			return circle.radius
+	return -1.0
+
+
+## The player's collision-rect half-extent (the larger axis), or -1 when
+## unresolved.
+func _player_half_extent() -> float:
+	if not is_instance_valid(brain.player):
+		return -1.0
+	for child in brain.player.get_children():
+		var shape_node := child as CollisionShape2D
+		if shape_node == null:
+			continue
+		var rect := shape_node.shape as RectangleShape2D
+		if rect != null:
+			return maxf(rect.size.x, rect.size.y) * 0.5
+	return -1.0
+
+
+## The follower's arrival tolerance, or -1 when unresolved.
+func _follower_reach() -> float:
+	if brain.follower == null:
+		return -1.0
+	return brain.follower.reach_tolerance
 
 
 ## The retreat trigger: enabled, wired, the player sensed and closer than

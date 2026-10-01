@@ -198,17 +198,21 @@ commit them. The warren (hidden burrow system) is the colony home.
   `NpcState` and states are direct `NpcState` children, so new NPCs
   reuse the machine untouched: copy the `Brain` subtree of
   `Scenes/mauser.tscn`, wire `npc`/`follower`/`pathfinder`, retune per
-  node. A new behaviour is one `NpcState` script; a new archetype adds
-  states without editing `NpcBrain`.
+  node (keep `Follower` before `Brain` in the scene's child order — the
+  brain's end-of-tick presentation forwarding must win the frame over the
+  motor/follower writes). A new behaviour is one `NpcState` script; a new
+  archetype adds states without editing `NpcBrain`.
 - The Mauser (`Scenes/mauser.tscn`, `Scripts/Mauser/mauser.gd`) — the
   first NPC: a configured instance of the NPC framework — docile
   territorial fauna (see DESIGN.md §6). `mauser.gd` is the thin species
   hook (`class_name Mauser extends Npc`, species behaviour belongs
   there); the `Brain` tree carries all tuning (see the Mauser tuning
   reference below) and a `test_level.tscn` instance is placed for play
-  feedback. Its follower runs `click_to_move` off and its body carries
-  `can_climb = false` (the species trait): it jumps gaps but never climbs
-  ladders, so chains are an escape. Its body also carries weighted
+  feedback. Its follower runs `click_to_move` off and the species default
+  `can_climb = false` now lives in `Mauser._init()` (DESIGN.md §6: it jumps
+  gaps but never climbs ladders, so chains are an escape), overridable per
+  instance in the Inspector so scene re-saves cannot silently drop it. Its
+  body also carries weighted
   momentum (`acceleration = 180.0`, `friction = 120.0` scene overrides —
   the motor always ramped; the creature was inheriting snappy 1200/1500
   defaults) and an `IdleLife` component (breathing bob, occasional
@@ -480,10 +484,16 @@ The Mauser is a configured instance of the NPC framework: tuning is
 spread over the node whose behaviour reads it (state thresholds live
 with the state that acts on them). Motor values (`jump_velocity`, …)
 stay on the body as with the Bot, as do the `Capabilities` flags
-(the Mauser sets `can_climb = false`). The personal-space bubble is the
+(the Mauser's species default sets `can_climb = false` in code). The
+personal-space bubble is the
 `SenseArea` circle radius in the scene (≈48 px): "invaded" means the
 player's body overlaps it. Sensing = in the bubble AND line of sight
-clear (solid tiles occlude, one-way platforms don't).
+clear (solid tiles occlude, one-way platforms don't). The wary defuse
+invariant is `retreat_distance > SenseArea.radius + player_half_extent +
+Follower.reach_tolerance` (defaults 72 > 48 + 6 + 3), plus
+`retreat_max_travel ≥ retreat_distance`; if it breaks, the retreat cannot
+push the player out of the bubble, so pressure fills to 1.0 and the wary
+beat escalates instead of defusing.
 
 `Brain` (`Scripts/NPC/npc_brain.gd`) — cross-state temperament:
 

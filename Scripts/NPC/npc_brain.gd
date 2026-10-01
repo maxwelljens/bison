@@ -15,6 +15,11 @@ extends Node
 ## [member initial_state]. All references degrade silently when
 ## unassigned. The brain never names a concrete state class — only
 ## [NpcState] — which is what makes this layer reusable by any NPC.
+##
+## Child tick order is load-bearing: the [member follower]'s node must
+## precede this brain in the scene's child order, so the brain's
+## end-of-tick presentation forwarding runs after — and wins the frame
+## over — the motor and follower writes.
 
 ## Physics collision mask for line of sight: layer 1 ("World") only, so
 ## solid tiles occlude the view and one-way platforms (layer 2) do not.
@@ -169,15 +174,18 @@ func _update_debug_label() -> void:
 
 ## Forwards the current state's presentation to the animator: its intent
 ## (overridden to JUMP while airborne — the NPC has no Air state) and its
-## facing. Every reference is null-guarded; unassigned presentation is a
-## silent no-op.
+## facing. The airborne override is skipped while climbing; a dedicated
+## CLIMB intent is future work for framework NPCs with
+## [member PlatformerBot.can_climb] (the Bot has no brain, and the Mauser is
+## climbing-enabled only while a per-instance override stands). Every
+## reference is null-guarded; unassigned presentation is a silent no-op.
 func _update_presentation() -> void:
 	if animator == null:
 		return
 	var current_intent := NpcAnimator.Intent.IDLE
 	if _current != null:
 		current_intent = _current.intent
-	if npc != null and not npc.is_on_floor():
+	if npc != null and not npc.is_on_floor() and not npc.is_climbing():
 		current_intent = NpcAnimator.Intent.JUMP
 	animator.set_intent(current_intent)
 	animator.set_facing(_facing_direction())
