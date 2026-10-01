@@ -17,7 +17,7 @@
 [ext_resource type="AudioStream" uid="uid://drd0fu1lq8rg" path="res://Audio/SFX/Death Screams/Alien/sfx_deathscream_alien6.ogg" id="9_fs7ks"]
 [ext_resource type="Script" uid="uid://cor1d6sbd3pt8" path="res://Scripts/Player/stunned.gd" id="9_stun"]
 [ext_resource type="Script" uid="uid://bp6oi3hr20yb4" path="res://Scripts/Player/dead.gd" id="10_dead"]
-[ext_resource type="Script" path="res://Scripts/Player/ladder.gd" id="11_ladr"]
+[ext_resource type="Script" uid="uid://b73yebaj6mb3o" path="res://Scripts/Player/ladder.gd" id="11_ladr"]
 [ext_resource type="Texture2D" uid="uid://dfx8uboq4nhlk" path="res://Textures/Tiles/Transparent/tile_0266.png" id="14_fd4e3"]
 
 [sub_resource type="SpriteFrames" id="SpriteFrames_fmu24"]
@@ -84,9 +84,9 @@ animations = [{
 size = Vector2(12, 11)
 
 [node name="Player" type="CharacterBody2D" unique_id=244470271 node_paths=PackedStringArray("state_grounded", "state_airborne", "state_stunned", "state_dead", "state_ladder", "animator", "sfx")]
-script = ExtResource("1_cvnsp")
 collision_layer = 8
 collision_mask = 3
+script = ExtResource("1_cvnsp")
 move_speed = 50.0
 acceleration = 250.0
 friction = 130.0
@@ -114,7 +114,7 @@ stun_time = 1.5
 [node name="Dead" type="Node" parent="StateMachine" unique_id=305609661]
 script = ExtResource("10_dead")
 
-[node name="Ladder" type="Node" parent="StateMachine"]
+[node name="Ladder" type="Node" parent="StateMachine" unique_id=1837166963]
 script = ExtResource("11_ladr")
 
 [node name="Animator" type="Node" parent="." unique_id=315617902 node_paths=PackedStringArray("sprite")]
@@ -127,6 +127,8 @@ sound_hard_land = ExtResource("8_igrcy")
 sound_death = ExtResource("9_fs7ks")
 footstep_interval = 0.2
 volume_db = -10.0
+
+[node name="AudioListener2D" type="AudioListener2D" parent="." unique_id=743840018]
 
 [node name="AnimatedSprite2D" type="AnimatedSprite2D" parent="." unique_id=1544279097]
 modulate = Color(0.72156864, 0.73333335, 0.14901961, 1)
