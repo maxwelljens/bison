@@ -41,7 +41,7 @@ const MAP_GROUP := "navigation"
 @export var max_fall_speed: float = 600.0
 
 ## Sprite flipped via `flip_h` to face the movement direction.
-@export var sprite: Sprite2D
+@export var sprite: AnimatedSprite2D
 
 @export_category("Ladder")
 ## Vertical climb speed in px/s.
