@@ -3,6 +3,7 @@
 [ext_resource type="Script" uid="uid://hve0agplp722" path="res://Scripts/Mauser/mauser.gd" id="1_mausr"]
 [ext_resource type="Texture2D" uid="uid://cp5xdyvvgo47d" path="res://Textures/Tiles/Transparent/tile_0360.png" id="2_5vgrk"]
 [ext_resource type="Script" uid="uid://dtqu8nh2yy6b3" path="res://Scripts/NPC/npc_brain.gd" id="2_mausr"]
+[ext_resource type="Material" uid="uid://c28vjeawc5x80" path="res://Shaders/outline.tres" id="2_tdnm8"]
 [ext_resource type="Script" uid="uid://ugjn1c2vl1hk" path="res://Scripts/Pathfinding/platformer_pathfinder.gd" id="3_mausr"]
 [ext_resource type="Texture2D" uid="uid://d3mn4chfn6l2t" path="res://Textures/Tiles/Transparent/tile_0364.png" id="3_pdoi5"]
 [ext_resource type="Script" uid="uid://cqtt6llypli1l" path="res://Scripts/Pathfinding/path_tuning.gd" id="4_hoa0i"]
@@ -78,9 +79,9 @@ friction = 120.0
 jump_velocity = -180.0
 jump_release_speed = 20.0
 sprite = NodePath("AnimatedSprite2D")
-can_climb = true
 
 [node name="AnimatedSprite2D" type="AnimatedSprite2D" parent="." unique_id=344478672]
+material = ExtResource("2_tdnm8")
 sprite_frames = SubResource("SpriteFrames_fmu24")
 animation = &"idle"
 autoplay = "idle"

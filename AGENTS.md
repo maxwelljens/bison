@@ -129,6 +129,14 @@ commit them. The warren (hidden burrow system) is the colony home.
   scale by adding an Event entry, an `@export` stream and a match arm in
   `_stream_for`. `sound_stop` ships unassigned (no skid asset in the
   Kenney pack); unassigned streams silently skip their event.
+- Global music: `Audio/Music/` holds the **final** 9-piece piano score
+  (~40 min), played by the `Music` autoload
+  (`Scenes/Music/music_player.tscn` → `Scripts/Music/music_player.gd`):
+  two `AudioStreamPlayer` voices on the existing `Music` bus
+  crossfade (1 s default), sequential rotation, autoplay from boot.
+  API is deliberately minimal — `play(track := -1)` /
+  `stop(fade := -1.0)`; no signals, no threat hooks (chase-reactive
+  music is recorded as OPEN in DESIGN.md §8, not wired).
 - Input map (`project.godot`): `move_left` (A/←), `move_right` (D/→),
   `jump` (Space only), `move_up` (W/↑, ladders only — inert elsewhere),
   `move_down` (S/↓). Keyboard only, no gamepad bindings.

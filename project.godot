@@ -23,6 +23,7 @@ buses/default_bus_layout="uid://lbvjh2jlr4j2"
 [autoload]
 
 Loot="*res://Scripts/Loot/loot.gd"
+Music="*res://Scenes/Music/music_player.tscn"
 
 [display]
 

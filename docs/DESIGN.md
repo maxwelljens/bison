@@ -23,8 +23,8 @@ unless explicitly reopened. Open/deferred items are marked **[OPEN]**.
 - **Art destination:** 1-bit aesthetic with CRT/scanline presentation
   (the repo's CRT shader already leans this way). Current assets are
   placeholders while systems are built.
-- **Tone:** quiet melancholy, nature-documentary register. Ambient-only
-  audio (no music), creature calls and wind.
+- **Tone:** quiet melancholy, nature-documentary register. A hushed
+  piano score over an ambient bed of creature calls and wind.
 - **Title** "Bison" is a dev-side placeholder with no in-fiction
   meaning committed.
 
@@ -138,8 +138,14 @@ unless explicitly reopened. Open/deferred items are marked **[OPEN]**.
 
 ## 8. Audio direction
 
-- Ambient only: no music. Wind, drips, distant calls; silence under
-  threat. Sparse creature sounds carry the melancholy register.
+- A continuous piano score (`Audio/Music/` — 9 pieces, ~40 minutes,
+  sequential rotation) plays from boot at a hushed level over an
+  ambient bed: wind, drips, distant calls. Sparse creature sounds
+  carry the melancholy register.
+- Music does not stand down under threat — a chase keeps the score
+  running.
+- **[OPEN]** Chase-reactive music: shifting track or mood while
+  pursued. The music API permits it; nothing is committed.
 
 ## 9. End of run
 
