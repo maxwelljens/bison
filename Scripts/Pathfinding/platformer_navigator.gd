@@ -129,6 +129,9 @@ func route(from_world: Vector2, to_world: Vector2, agent: AgentKinematics) -> Pa
 		float(grid.cell_size.x),
 		agent.climb_speed,
 	)
+	# Envelope derate: plan arcs for a takeoff that may still be building
+	# speed (momentum-weighted bodies), without touching ladder step pricing.
+	state.jump.takeoff_speed_factor = tuning.takeoff_speed_factor
 	state.max_jump_cells = state.jump.height_cells()
 	state.can_jump = agent.can_jump
 	state.can_climb = agent.can_climb

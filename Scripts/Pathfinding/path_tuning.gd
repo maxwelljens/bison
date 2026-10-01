@@ -31,6 +31,12 @@ extends Resource
 @export var climb_grab_cost: float = 0.5
 
 @export_category("Drift guard")
+## Planned arcs assume the takeoff reaches at least this fraction of
+## move_speed; ≤ 1 conservatises the envelope for momentum-weighted agents
+## (their weighted acceleration may not have built full run speed by the
+## lip, so an envelope planned at full speed would promise drift they
+## cannot execute).
+@export_range(0.5, 1.0, 0.01) var takeoff_speed_factor: float = 0.85
 ## Padding above the higher drift-check point in px (body headroom).
 @export var drift_pad_top: float = 3.0
 ## Padding below the lower drift-check point in px (body height).

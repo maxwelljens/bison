@@ -21,6 +21,11 @@ var move_speed: float
 var cell_size: float
 ## Vertical ladder speed in px/s.
 var climb_speed: float
+## Fraction of [member move_speed] the drift envelope assumes at takeoff
+## (1.0 = full speed instantly). Applied only to [method drift_cells]; ladder
+## step pricing keeps the raw [member move_speed]. Set from
+## [member PathTuning.takeoff_speed_factor] by the navigator.
+var takeoff_speed_factor: float = 1.0
 
 
 ## Stores the agent's kinematics; all derived values are computed on demand.
@@ -61,8 +66,10 @@ func height_cells() -> int:
 ## root = √(v² − 2·g·h) is the speed magnitude there. The time to reach that
 ## height on the ascending branch is (|v| − root)/g; the time to descend back
 ## to it is (|v| + root)/g. [param falling] picks the descending branch (full
-## flight time), otherwise the ascending one. Multiplied by [member move_speed]
-## and divided by [member cell_size], that airtime is the drift in cells.
+## flight time), otherwise the ascending one. Multiplied by
+## [member move_speed] × [member takeoff_speed_factor] (the derated takeoff
+## speed) and divided by [member cell_size], that airtime is the drift in
+## cells.
 func drift_cells(height: int, falling: bool) -> int:
 	if gravity <= 0.0 or cell_size <= 0.0:
 		return 0
@@ -74,4 +81,4 @@ func drift_cells(height: int, falling: bool) -> int:
 	var t := (absf(jump_velocity) + root) / gravity
 	if not falling and height > 0:
 		t = (absf(jump_velocity) - root) / gravity
-	return int(move_speed * t / cell_size)
+	return int(move_speed * takeoff_speed_factor * t / cell_size)
