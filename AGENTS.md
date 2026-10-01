@@ -41,11 +41,12 @@ commit them. The warren (hidden burrow system) is the colony home.
 - `Levels/` — level scenes. `test_level.tscn` is the main scene.
 - `Scenes/` — reusable scenes: `player.tscn` (Player root: state-machine
   children, `AnimatedSprite2D`, collision, camera), `bot.tscn`
-  (Bot root: `Sprite2D`, collision, `BotPathFollower`, `Pathfinder`),
+  (Bot root: `AnimatedSprite2D`, collision, `BotPathFollower`, `Pathfinder`),
   `chest.tscn` (Chest root: `Sprite2D`, `Trigger` Area2D, `Sfx`, `Vfx`)
-  and `mauser.tscn` (Mauser root: `Sprite2D`, collision, `Pathfinder`,
-  `Follower`, `Brain` with `Roam`/`Wary`/`Pursue` state children (plus
-  `Roam/Wander`), `SenseArea`/`ContactArea` detector areas,
+  and `mauser.tscn` (Mauser root: `AnimatedSprite2D`, collision,
+  `Pathfinder`, `Follower`, `Brain` with `Roam`/`Wary`/`Pursue` state
+  children (plus `Roam/Wander`), `IdleLife`, `Animator`, `Sfx`,
+  `SenseArea`/`ContactArea` detector areas,
   `DebugLabel`).
 - `Scripts/` — GDScript sources: `Player/` (`player.gd`, `player_state.gd`,
   `grounded.gd`, `airborne.gd`, `player_animator.gd`,
@@ -56,7 +57,8 @@ commit them. The warren (hidden burrow system) is the colony home.
   `debug/grid_debug_draw.gd`); `Bot/`
   (`platformer_bot.gd`, `bot_path_follower.gd`); `NPC/`
   (`npc.gd`, `npc_state.gd`, `npc_brain.gd`, `npc_wander.gd`,
-  `npc_roam.gd`, `npc_wary.gd`, `npc_pursue.gd`); `Mauser/`
+  `npc_roam.gd`, `npc_wary.gd`, `npc_pursue.gd`, `npc_idle_life.gd`,
+  `npc_animator.gd`, `npc_sfx.gd`); `Mauser/`
   (`mauser.gd`); `Chest/`
   (`chest.gd`, `chest_sfx.gd`, `chest_vfx.gd`).
 - `Textures/` — art: `Tilemap/` (tileset textures), `Tiles/Default` and
@@ -172,10 +174,27 @@ commit them. The warren (hidden burrow system) is the colony home.
   `npc.gd` (`Npc extends PlatformerBot`: generic body — `aggressive`
   flag and touch-kill through the overridable `on_contact_player` hook,
   the seam for non-lethal species), `npc_wander.gd` (`NpcWander`:
-  reusable wander component), and three reusable states: `npc_roam.gd`
+  reusable wander component), `npc_idle_life.gd` (`NpcIdleLife`:
+  breathing bob and look-around component), and three reusable states: `npc_roam.gd`
   (wander + agitation accumulation), `npc_wary.gd` (wary beat: face, tint, give ground),
   `npc_pursue.gd` (chase + rage drain — a fixed chase budget; `calm_at`
-  stands it down with the meter reset to 0). The brain references only
+  stands it down with the meter reset to 0). Presentation mirrors the
+  player's split: `npc_animator.gd` (`NpcAnimator`: Intent enum
+  IDLE/WALK/CHARGE/WARY/RETREAT/JUMP, exported animation-name-per-intent
+  map with missing→idle fallback, and `set_facing` — it OWNS `flip_h`
+  for NPCs; the motor's heading writes are corrected by the brain's
+  end-of-tick forwarding) and `npc_sfx.gd` (`NpcSfx extends AudioStreamPlayer2D` — SPATIAL: the node is the
+  carrier and voice 0, plus `voice_count - 1` spatial child voices
+  mirroring its native knobs (`volume_db`, `bus`, `max_distance`,
+  `attenuation`, `panning_strength`); round-robin pool so events never
+  cut each other, `NONE`/null-stream silent skip, LAND floor-edge / STEP
+  cadence / IDLE_CALL gated by `not npc.aggressive` — silence under
+  threat).
+  States declare `intent` (rewritten each frame), `facing_to_player`
+  and `enter_sfx`; the brain forwards intent+facing at the END of its
+  tick (airborne → JUMP) and plays `enter_sfx` inside `_transition` —
+  the exact `player.gd` presentation pattern. `NpcWary`'s old
+  `_face_player` retired into `facing_to_player`. The brain references only
   `NpcState` and states are direct `NpcState` children, so new NPCs
   reuse the machine untouched: copy the `Brain` subtree of
   `Scenes/mauser.tscn`, wire `npc`/`follower`/`pathfinder`, retune per
@@ -189,14 +208,28 @@ commit them. The warren (hidden burrow system) is the colony home.
   reference below) and a `test_level.tscn` instance is placed for play
   feedback. Its follower runs `click_to_move` off and its body carries
   `can_climb = false` (the species trait): it jumps gaps but never climbs
-  ladders, so chains are an escape.
+  ladders, so chains are an escape. Its body also carries weighted
+  momentum (`acceleration = 180.0`, `friction = 120.0` scene overrides —
+  the motor always ramped; the creature was inheriting snappy 1200/1500
+  defaults) and an `IdleLife` component (breathing bob, occasional
+  glances); `Wander` micro-stalls ride on `BotPathFollower.hold_for`.
 - `Player.kill()` — public one-touch death entry for external causes
   (creature contact, traps); fall deaths keep using the internal tiers.
-- Pathfinding retarget semantics (probe-fixed 2026-09-30): `BotPathFollower.move_to` **commits to in-flight jumps** — while the bot is airborne a new target is queued (newest wins; refused routes change nothing) and replanned on landing, and mid-flight input release is suppressed (the in-flight steer continues), so rapid retargeting never truncates a jump or dead-sticks a body mid-air. Goal snapping (`PlatformerGrid.snap_to_standable`) is vertically weighted and side-aware — `PathTuning.goal_snap_side_cells` (8) and `goal_snap_vertical_weight` (3.0), with `goal_snap_max_cells` bounding the descent — and the navigator refuses unsupported goals (no ground/one-way below and not a ladder rung): a target floating over a gap snaps to a landing lip at height or the route is refused, never the chasm floor. Regression harness (throwaway, copied back into the project root to run): `/tmp/opencode/bison-probe-retarget/_probe_retarget.gd` — stairs/gap/mid-air retarget assertions, ~10 s headless.
+- Pathfinding retarget semantics (probe-fixed 2026-09-30): `BotPathFollower.move_to` **commits to in-flight jumps** — while the bot is airborne a new target is queued (newest wins; refused routes change nothing) and replanned on landing, and mid-flight input release is suppressed (the in-flight steer continues), so rapid retargeting never truncates a jump or dead-sticks a body mid-air. Goal snapping (`PlatformerGrid.snap_to_standable`) is vertically weighted and side-aware — `PathTuning.goal_snap_side_cells` (8) and `goal_snap_vertical_weight` (3.0), with `goal_snap_max_cells` bounding the descent — and the navigator refuses unsupported goals (no ground/one-way below and not a ladder rung): a target floating over a gap snaps to a landing lip at height or the route is refused, never the chasm floor. Regression harness (throwaway, copied back into the project root to run): `/tmp/opencode/bison-probe-retarget/_probe_retarget.gd` — stairs/gap/mid-air retarget assertions, ~10 s headless. Takeoff honesty (2026-10-01, momentum increment): `_matched_impulse` sizes from the measured launch velocity clamped by `BotPathFollower.launch_speed_floor` (0.5 of `move_speed`, standing-start falls back to full speed) and `PathTuning.takeoff_speed_factor` (0.85) derates the drift envelope for momentum-weighted bodies; landed-arc advance accepts same-direction overshoots on supported ground (weak friction + strict LAND return used to walk momentum bodies back off lips); `BotPathFollower.hold_for(duration)` pauses steering without dropping the route (never while `_launched`/mid-air; grounded `move_to`/`stop` cancel it). Advance-rule nuance (ladder fix, 2026-10-01): `_onward_dx` stops at a same-column `CLIMB` — a chain shares its grab column, so scanning past it pointed back down the approach and accepted the grab-WALK early, wedging the body off-centre against 1-cell shaft walls; and a climb-catch whose next waypoint is a CLIMB (previous not) advances into the climb rather than deadlocking a held jump. Probe suite (reconstructed after a server wipe) archived at `/tmp/opencode/bison-probe-{retarget,momentum,caps,wary,present,ladder}/` (descent scenarios live under momentum) — 7 harnesses, 157 assertions.
 - Scene-level tuning overrides on the Player node (user-tuned in the
   Inspector; the scene is the source of truth, currently
-  `move_speed = 50.0`, `jump_velocity = -150.0`). Script defaults differ
+  `move_speed = 50.0`, `acceleration = 250.0`, `friction = 130.0`,
+  `jump_velocity = -150.0`). Script defaults differ
   and only apply where a scene does not override them.
+- **Inspector-exposed parameters are volatile — do not chase them.** The
+  user tunes scene-exported `@export` values constantly in the editor
+  and they routinely differ from session to session (capability flags,
+  radii, thresholds, speeds, tints, audio slot assignments, …).
+  Differences in such values are routine tuning/testing state, NOT
+  findings: do not flag them as regressions, do not revert them, and do
+  not "restore documented values" unless the user asks. Script defaults
+  in the tuning tables are code and stable; scene-level values are the
+  user's live workspace.
 - Pathfinding (increment-based delivery): `Scripts/Pathfinding/` foundations
   landed (typed waypoints, jump model, TileMapLayer→grid extraction) and
   headlessly probed, plus a `GridDebugDraw` overlay and a `Pathfinder` route
@@ -287,7 +320,9 @@ commit them. The warren (hidden burrow system) is the colony home.
   Awaiting re-verification.
 - Known gaps (intentionally out of scope so far): no camera limits, no
   death UI/permadeath flow (DESIGN.md §9 unwired), no fall-specific art
-  (AIR still maps to the jump frames). Mauser: placeholder sprite, no creature audio. Per-agent pathfinding capability flags
+  (AIR still maps to the jump frames). Mauser: tile-placeholder animation frames (`idle`/`move`/`jump` only —
+  no wary art yet); its creature sounds are hand-auditioned general
+  Kenney effects pending real creature audio (see the Sfx table below). Per-agent pathfinding capability flags
   landed (`can_jump`/`can_climb`/`can_drop_through` on `PlatformerBot`,
   carried into the search through `AgentKinematics`): each prunes the
   matching edge family from the navigator's search, so the Mauser's
@@ -477,6 +512,27 @@ clear (solid tiles occlude, one-way platforms don't).
 | `pick_attempts` | 4 | fresh picks per goal before giving up |
 | `reach_distance` | 6.0 px | "arrived" tolerance for a wander goal |
 | `walk_timeout` | 8.0 s | abandon a wander goal after this |
+| `stall_chance` | 0.08 | per goal, chance of a mid-walk micro-stall |
+| `stall_time` | 0.6 s | duration of that micro-stall (via `hold_for`) |
+
+`Mauser` body (`Scenes/mauser.tscn`) — momentum weights (scene
+overrides; the motor defaults are 1200/1500, the tuned player uses
+250/130):
+
+| Property | Default | Meaning |
+|---|---|---|
+| `acceleration` | 180.0 px/s² | time-to-speed (≈0.3 s to the 58 px/s charge) |
+| `friction` | 120.0 px/s² | stop-slide (≈0.5 s to rest) |
+
+`IdleLife` (`Scripts/NPC/npc_idle_life.gd`) — breathing bob and glances:
+
+| Property | Default | Meaning |
+|---|---|---|
+| `bob_period` | 2.4 s | breathing cycle |
+| `bob_amplitude` | 0.03 | scale.y breath (scale.x compensates) |
+| `glance_interval_min` / `_max` | 3.0 / 8.0 s | idle look-around cadence |
+| `glance_tilt` | 6.0° | peak tilt of a glance |
+| `glance_duration` | 0.35 s | glance in-and-back time |
 
 `Wary` (`Scripts/NPC/npc_wary.gd`) — give ground & watch:
 
@@ -501,6 +557,39 @@ then the meter finishes the story.
 | `calm_at` | 0.2 | stands down below this pressure (meter resets to 0) |
 | `pursuit_speed` | 58.0 px/s | chase pace (above the player's tuned 50) |
 | `reroute_interval` | 0.25 s | how often the chase re-routes |
-| `rage_time` | 4.0 s | chase budget while the player is sensed |
-| `lost_contact_rage_time` | 2.0 s | chase budget once contact breaks |
+| `rage_time` | 4.0 s (Mauser scene override: 60.0 s) | chase budget while the player is sensed — the override is user-tuned (scene is source of truth) |
+| `lost_contact_rage_time` | 2.0 s (Mauser scene override: 60.0 s) | chase budget once contact breaks |
 | `aggressive_tint` | red | `modulate` target in this state |
+
+`Animator` (`Scripts/NPC/npc_animator.gd`) — intent→animation names
+(missing animations fall back to `idle`, so future art drops in by
+pointing a slot at it from the Inspector — zero code):
+
+| Property | Default | Meaning |
+|---|---|---|
+| `anim_idle` / `anim_walk` / `anim_charge` | idle / move / move | first three slots |
+| `anim_wary` / `anim_retreat` / `anim_jump` | wary / move / jump | `wary` has no art yet → shows idle |
+
+`Sfx` (`Scripts/NPC/npc_sfx.gd`) — spatial creature sounds
+(paths relative to `Audio/SFX/`):
+
+| Property | Value | Meaning |
+|---|---|---|
+| `voice_count` | 4 | pooled round-robin voices (self + spatial children) |
+| `footstep_interval` | 0.3 s | STEP cadence while moving and grounded |
+| `idle_call_interval_min` / `_max` | 10.0 / 25.0 s | IDLE_CALL cadence — calm only (silence under threat) |
+| `sound_idle_call` | `General Sounds/Interactions/sfx_sounds_interaction24.ogg` | the calm call |
+| `sound_wary_warning` | `General Sounds/Weird Sounds/sfx_sound_nagger1.ogg` | fires on the give-ground beat |
+| `sound_aggro_cry` | `General Sounds/Weird Sounds/sfx_sound_mechanicalnoise4.ogg` | fires on the flip to aggressive |
+| `sound_land` | `Movement/Jumping and Landing/sfx_movement_jump13_landing.ogg` | shared with the player's LAND |
+| `sound_footsteps` | `Movement/Footsteps/sfx_movement_footstepsloop4_fast` + `_slow` | the STEP slot |
+| native spatial knobs | defaults | `volume_db`, `bus`, `max_distance`, `attenuation`, `panning_strength` — set on the Sfx node; copied to its child voices at startup |
+
+All three vocals are hand-auditioned general Kenney effects (the pack
+ships no creature voices — swap for real creature audio later);
+`Death Screams/Alien/*` stays excluded — it is the player's death
+scream.
+
+State presentation fields (`NpcState`): `intent` (set each frame),
+`facing_to_player` (`Wary`), `enter_sfx` (`Wary` → WARY_WARN,
+`Pursue` → AGGRO_CRY).
