@@ -22,7 +22,7 @@ region = Rect2(272, 272, 48, 48)
 font = ExtResource("8_ffofi")
 font_color = Color(0.92156863, 0.85882354, 0.69803923, 1)
 
-[node name="HUD" type="Control" unique_id=188150801 node_paths=PackedStringArray("chest_inventory", "player_inventory", "tooltip", "clock")]
+[node name="HUD" type="Control" unique_id=188150801 node_paths=PackedStringArray("chest_inventory", "player_inventory", "tooltip", "clock", "return_confirmation", "confirm_button", "deny_button")]
 layout_mode = 3
 anchors_preset = 0
 theme = ExtResource("1_4xsxb")
@@ -31,6 +31,27 @@ chest_inventory = NodePath("ChestInventory")
 player_inventory = NodePath("PlayerInventory")
 tooltip = NodePath("InventoryTooltip")
 clock = NodePath("Clock")
+return_confirmation = NodePath("ReturnConfirmation")
+confirm_button = NodePath("ReturnConfirmation/MarginContainer/VBoxContainer/Confirm")
+deny_button = NodePath("ReturnConfirmation/MarginContainer/VBoxContainer/Deny")
+
+[node name="Clock" type="Label" parent="." unique_id=1288877683]
+layout_mode = 0
+offset_left = 560.0
+offset_top = 24.0
+offset_right = 600.0
+offset_bottom = 46.0
+
+[node name="ClockGraphic" type="TextureRect" parent="Clock" unique_id=604589248]
+layout_mode = 0
+offset_left = 8.0
+offset_top = 24.0
+offset_right = 24.0
+offset_bottom = 40.0
+script = ExtResource("10_clk")
+texture_day = ExtResource("11_ta331")
+texture_warning = ExtResource("12_jxd30")
+texture_dusk = ExtResource("13_1yxy6")
 
 [node name="ChestInventory" type="NinePatchRect" parent="." unique_id=1124244590 node_paths=PackedStringArray("grid", "tooltip")]
 self_modulate = Color(0.15686275, 0.15686275, 0.15686275, 1)
@@ -169,20 +190,43 @@ text = "Body"
 fit_content = true
 scroll_active = false
 
-[node name="Clock" type="Label" parent="." unique_id=1288877683]
+[node name="ReturnConfirmation" type="NinePatchRect" parent="." unique_id=1845003226]
+visible = false
+self_modulate = Color(0.15686275, 0.15686275, 0.15686275, 1)
+texture_filter = 1
 layout_mode = 0
-offset_left = 560.0
-offset_top = 24.0
-offset_right = 600.0
-offset_bottom = 46.0
+offset_left = 448.0
+offset_top = 72.0
+offset_right = 704.0
+offset_bottom = 192.0
+texture = ExtResource("2_rx5l5")
+patch_margin_left = 12
+patch_margin_top = 12
+patch_margin_right = 12
+patch_margin_bottom = 12
+axis_stretch_horizontal = 1
+axis_stretch_vertical = 1
 
-[node name="ClockGraphic" type="TextureRect" parent="." unique_id=604589248]
-layout_mode = 0
-offset_left = 568.0
-offset_top = 48.0
-offset_right = 584.0
-offset_bottom = 64.0
-script = ExtResource("10_clk")
-texture_day = ExtResource("11_ta331")
-texture_warning = ExtResource("12_jxd30")
-texture_dusk = ExtResource("13_1yxy6")
+[node name="MarginContainer" type="MarginContainer" parent="ReturnConfirmation" unique_id=1460104118]
+layout_mode = 1
+anchors_preset = 15
+anchor_right = 1.0
+anchor_bottom = 1.0
+grow_horizontal = 2
+grow_vertical = 2
+
+[node name="VBoxContainer" type="VBoxContainer" parent="ReturnConfirmation/MarginContainer" unique_id=1965557628]
+layout_mode = 2
+
+[node name="Label" type="Label" parent="ReturnConfirmation/MarginContainer/VBoxContainer" unique_id=1044702282]
+layout_mode = 2
+text = "LABEL_ASK_END_RUN"
+horizontal_alignment = 1
+
+[node name="Confirm" type="Button" parent="ReturnConfirmation/MarginContainer/VBoxContainer" unique_id=1129191326]
+layout_mode = 2
+text = "LABEL_YES"
+
+[node name="Deny" type="Button" parent="ReturnConfirmation/MarginContainer/VBoxContainer" unique_id=2140514377]
+layout_mode = 2
+text = "LABEL_NO"

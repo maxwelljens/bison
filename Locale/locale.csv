@@ -12,3 +12,13 @@ ITEM_FRUIT_DESC,Świeżo zebrany.,Freshly picked.
 ITEM_EMBER_DESC,Paliwo niezbędne do zasilania pieców i maszyn.,"Fuel, crucial for powering heaters and machines."
 ITEM_SALVE_DESC,Naturalny lek o wielu zastosowaniach.,Natural medicine with many uses.
 ITEM_SLATE_DESC,"Miękki kamień, przydatny w budowach.","Soft rock, useful in construction."
+BUTTON_START_GAME,Rozpocznij grę,Start game
+BUTTON_EXIT_GAME,Zamknij grę,Exit game
+BUTTON_SET_OUT,Wyrusz,Set out
+BUTTON_QUIT_TO_TITLE,Powrót do tytułu,Quit to title
+COLONY_DAY,Dzień %d,Day %d
+COLONY_BANKED,Ładunek zdeponowany.,Haul banked.
+LABEL_WARREN,Nora,Warren
+LABEL_ASK_END_RUN,"Wrócić do nory?","Return to the warren?"
+LABEL_YES,Tak,Yes
+LABEL_NO,Nie,No

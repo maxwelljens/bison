@@ -1,0 +1,31 @@
+[gd_scene format=3 uid="uid://1wxlujx5ux1p"]
+
+[ext_resource type="Theme" uid="uid://bensgq7jf7ndn" path="res://UI/hud_theme.tres" id="1_frj5v"]
+[ext_resource type="Script" path="res://Scripts/Levels/title_screen.gd" id="2_ttl"]
+
+[node name="TitleScreen" type="Control" unique_id=993439112 node_paths=PackedStringArray("start_button", "exit_button")]
+layout_mode = 3
+anchors_preset = 15
+anchor_right = 1.0
+anchor_bottom = 1.0
+grow_horizontal = 2
+grow_vertical = 2
+theme = ExtResource("1_frj5v")
+script = ExtResource("2_ttl")
+start_button = NodePath("VBoxContainer/StartGameButton")
+exit_button = NodePath("VBoxContainer/ExitGameButton")
+
+[node name="VBoxContainer" type="VBoxContainer" parent="." unique_id=467387829]
+layout_mode = 0
+offset_left = 512.0
+offset_top = 256.0
+offset_right = 704.0
+offset_bottom = 448.0
+
+[node name="StartGameButton" type="Button" parent="VBoxContainer" unique_id=825842537]
+layout_mode = 2
+text = "BUTTON_START_GAME"
+
+[node name="ExitGameButton" type="Button" parent="VBoxContainer" unique_id=2009406187]
+layout_mode = 2
+text = "BUTTON_EXIT_GAME"

@@ -9,6 +9,8 @@
 bg_color = Color(0.19607843, 0.1882353, 0.18431373, 1)
 
 [resource]
+Button/colors/font_color = Color(0.92156863, 0.85882354, 0.69803923, 1)
+Button/fonts/font = ExtResource("1_3jrto")
 Label/colors/font_color = Color(0.92156863, 0.85882354, 0.69803923, 1)
 Label/colors/font_outline_color = Color(0.19607843, 0.1882353, 0.18431373, 1)
 Label/fonts/font = ExtResource("1_3jrto")
