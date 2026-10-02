@@ -1,0 +1,28 @@
+[gd_scene format=3 uid="uid://c6phmf5r8fdca"]
+
+[ext_resource type="Script" uid="uid://coolwv62vwrp3" path="res://Scripts/HUD/presentation.gd" id="1_pres"]
+[ext_resource type="Material" uid="uid://b58hmfqvhrknn" path="res://Shaders/crt.tres" id="2_crt"]
+[ext_resource type="PackedScene" uid="uid://84i8gvlr8t72" path="res://UI/Scenes/hud.tscn" id="3_hud"]
+
+[node name="Presentation" type="Node" unique_id=320951067 node_paths=PackedStringArray("hud")]
+script = ExtResource("1_pres")
+hud = NodePath("Foreground/HUD")
+
+[node name="Background" type="CanvasLayer" parent="." unique_id=1912154139]
+layer = -1
+
+[node name="BackgroundColour" type="ColorRect" parent="Background" unique_id=1735329679]
+offset_right = 2046.0
+offset_bottom = 2046.0
+mouse_filter = 2
+color = Color(0.11372549, 0.1254902, 0.12941177, 1)
+
+[node name="Foreground" type="CanvasLayer" parent="." unique_id=258986703]
+
+[node name="HUD" parent="Foreground" unique_id=186754458 instance=ExtResource("3_hud")]
+
+[node name="CRTShader" type="ColorRect" parent="Foreground" unique_id=1213987549]
+material = ExtResource("2_crt")
+offset_right = 2046.0
+offset_bottom = 2046.0
+mouse_filter = 2

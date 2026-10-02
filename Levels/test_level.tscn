@@ -1,8 +1,7 @@
 [gd_scene format=4 uid="uid://w7sf4628kqjm"]
 
-[ext_resource type="Material" uid="uid://b58hmfqvhrknn" path="res://Shaders/crt.tres" id="1_3158n"]
 [ext_resource type="TileSet" uid="uid://bac1b5al6grbt" path="res://Resources/bg_tileset.tres" id="1_i4ak4"]
-[ext_resource type="PackedScene" uid="uid://84i8gvlr8t72" path="res://UI/Scenes/hud.tscn" id="1_pvdih"]
+[ext_resource type="PackedScene" uid="uid://c6phmf5r8fdca" path="res://UI/Scenes/presentation.tscn" id="1_pres"]
 [ext_resource type="TileSet" uid="uid://dovecwwpkmnqc" path="res://Resources/fg_tileset.tres" id="2_3158n"]
 [ext_resource type="Resource" uid="uid://fbytxa0w767a" path="res://Resources/MusicSets/night.tres" id="2_dkv23"]
 [ext_resource type="PackedScene" uid="uid://g2bnsf747asl" path="res://Scenes/player.tscn" id="2_ub4j8"]
@@ -13,7 +12,7 @@
 [ext_resource type="Script" uid="uid://c43emlhjqykc1" path="res://Scripts/Music/music_cue.gd" id="10_cue"]
 [ext_resource type="Resource" uid="uid://ckises14ojo1o" path="res://Resources/MusicSets/gameplay.tres" id="11_set"]
 [ext_resource type="Script" uid="uid://7r4gf6kj3dm3" path="res://Scripts/Levels/test_level.gd" id="12_lvl"]
-[ext_resource type="Script" path="res://Scripts/Levels/warren_exit.gd" id="13_exit"]
+[ext_resource type="Script" uid="uid://5tafv2o536qf" path="res://Scripts/Levels/warren_exit.gd" id="13_exit"]
 
 [sub_resource type="RectangleShape2D" id="RectangleShape2D_warren_exit"]
 size = Vector2(32, 32)
@@ -26,24 +25,7 @@ dusk_soundtrack = ExtResource("2_dkv23")
 script = ExtResource("10_cue")
 soundtrack = ExtResource("11_set")
 
-[node name="Foreground" type="CanvasLayer" parent="." unique_id=51396446]
-
-[node name="HUD" parent="Foreground" unique_id=188150801 instance=ExtResource("1_pvdih")]
-
-[node name="CRTShader" type="ColorRect" parent="Foreground" unique_id=1760162168]
-material = ExtResource("1_3158n")
-offset_right = 2046.0
-offset_bottom = 2046.0
-mouse_filter = 2
-
-[node name="Background" type="CanvasLayer" parent="." unique_id=664191471]
-layer = -1
-
-[node name="BackgroundColour" type="ColorRect" parent="Background" unique_id=480684130]
-offset_right = 2046.0
-offset_bottom = 2046.0
-mouse_filter = 2
-color = Color(0.11372549, 0.1254902, 0.12941177, 1)
+[node name="Presentation" parent="." unique_id=1900921149 instance=ExtResource("1_pres")]
 
 [node name="Map" type="Node" parent="." unique_id=848608864]
 
@@ -79,17 +61,16 @@ position = Vector2(-32, 8)
 [node name="Mauser" parent="." unique_id=1113905256 instance=ExtResource("9_mausr")]
 position = Vector2(140, 8)
 
-[node name="WarrenExit" type="Area2D" parent="."]
+[node name="WarrenExit" type="Area2D" parent="." unique_id=931220802]
 position = Vector2(0, 8)
 collision_layer = 0
 collision_mask = 8
 script = ExtResource("13_exit")
 
-[node name="CollisionShape2D" type="CollisionShape2D" parent="WarrenExit"]
+[node name="CollisionShape2D" type="CollisionShape2D" parent="WarrenExit" unique_id=1851098854]
 shape = SubResource("RectangleShape2D_warren_exit")
 
-[node name="Marker" type="Label" parent="WarrenExit"]
-layout_mode = 0
+[node name="Marker" type="Label" parent="WarrenExit" unique_id=943745704]
 offset_left = -48.0
 offset_top = -44.0
 offset_right = 48.0

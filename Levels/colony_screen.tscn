@@ -1,12 +1,13 @@
 [gd_scene format=3 uid="uid://yexygg2mp43v"]
 
 [ext_resource type="Theme" uid="uid://bensgq7jf7ndn" path="res://UI/hud_theme.tres" id="1_thm"]
-[ext_resource type="Script" path="res://Scripts/Levels/colony_screen.gd" id="2_col"]
+[ext_resource type="Script" uid="uid://dhnyrrbducy60" path="res://Scripts/Levels/colony_screen.gd" id="2_col"]
 [ext_resource type="Resource" uid="uid://co6ayjggk2ix3" path="res://Resources/Items/fruit.tres" id="3_frut"]
 [ext_resource type="Resource" uid="uid://dbsuboylmb1mw" path="res://Resources/Items/ember.tres" id="4_embr"]
 [ext_resource type="Resource" uid="uid://bha48ff1y5wf4" path="res://Resources/Items/salve.tres" id="5_slve"]
 [ext_resource type="Resource" uid="uid://dihsbr30k6cml" path="res://Resources/Items/slate.tres" id="6_slat"]
 [ext_resource type="Script" uid="uid://gkhymnxpcw76" path="res://Scripts/Items/item.gd" id="7_item"]
+[ext_resource type="PackedScene" path="res://UI/Scenes/presentation.tscn" id="8_pres"]
 
 [node name="ColonyScreen" type="Control" unique_id=422889876 node_paths=PackedStringArray("status_report", "set_out_button", "quit_button")]
 layout_mode = 3
@@ -22,6 +23,9 @@ set_out_button = NodePath("Buttons/SetOutButton")
 quit_button = NodePath("Buttons/QuitButton")
 stockpile_items = Array[ExtResource("7_item")]([ExtResource("3_frut"), ExtResource("4_embr"), ExtResource("5_slve"), ExtResource("6_slat")])
 
+[node name="Presentation" parent="." instance=ExtResource("8_pres")]
+show_hud = false
+
 [node name="StatusReport" type="RichTextLabel" parent="." unique_id=1258129789]
 layout_mode = 0
 offset_left = 64.0
@@ -29,17 +33,17 @@ offset_top = 64.0
 offset_right = 1088.0
 offset_bottom = 576.0
 
-[node name="Buttons" type="HBoxContainer" parent="."]
+[node name="Buttons" type="HBoxContainer" parent="." unique_id=771957993]
 layout_mode = 0
-offset_left = 64.0
-offset_top = 584.0
-offset_right = 576.0
-offset_bottom = 636.0
+offset_left = 448.0
+offset_top = 432.0
+offset_right = 960.0
+offset_bottom = 484.0
 
-[node name="SetOutButton" type="Button" parent="Buttons"]
+[node name="SetOutButton" type="Button" parent="Buttons" unique_id=793262091]
 layout_mode = 2
 text = "BUTTON_SET_OUT"
 
-[node name="QuitButton" type="Button" parent="Buttons"]
+[node name="QuitButton" type="Button" parent="Buttons" unique_id=473191429]
 layout_mode = 2
 text = "BUTTON_QUIT_TO_TITLE"
