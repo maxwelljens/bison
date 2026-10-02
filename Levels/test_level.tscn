@@ -4,15 +4,19 @@
 [ext_resource type="TileSet" uid="uid://bac1b5al6grbt" path="res://Resources/bg_tileset.tres" id="1_i4ak4"]
 [ext_resource type="PackedScene" uid="uid://84i8gvlr8t72" path="res://UI/Scenes/hud.tscn" id="1_pvdih"]
 [ext_resource type="TileSet" uid="uid://dovecwwpkmnqc" path="res://Resources/fg_tileset.tres" id="2_3158n"]
+[ext_resource type="Resource" uid="uid://fbytxa0w767a" path="res://Resources/MusicSets/night.tres" id="2_dkv23"]
 [ext_resource type="PackedScene" uid="uid://g2bnsf747asl" path="res://Scenes/player.tscn" id="2_ub4j8"]
 [ext_resource type="PackedScene" uid="uid://c5nqvi1g3p55l" path="res://Scenes/bot.tscn" id="3_4k50d"]
 [ext_resource type="PackedScene" uid="uid://beomhqbeouj18" path="res://Scenes/chest.tscn" id="7_ub4j8"]
 [ext_resource type="Script" uid="uid://dphjmjusdjmux" path="res://Scripts/Tilemap/tile_palette.gd" id="8_pal"]
 [ext_resource type="PackedScene" uid="uid://basg53fyuc5ni" path="res://Scenes/mauser.tscn" id="9_mausr"]
 [ext_resource type="Script" uid="uid://c43emlhjqykc1" path="res://Scripts/Music/music_cue.gd" id="10_cue"]
-[ext_resource type="Resource" path="res://Audio/Music/sets/gameplay.tres" id="11_set"]
+[ext_resource type="Resource" uid="uid://ckises14ojo1o" path="res://Resources/MusicSets/gameplay.tres" id="11_set"]
+[ext_resource type="Script" uid="uid://7r4gf6kj3dm3" path="res://Scripts/Levels/test_level.gd" id="12_lvl"]
 
 [node name="TestLevel" type="Node2D" unique_id=277619520]
+script = ExtResource("12_lvl")
+dusk_soundtrack = ExtResource("2_dkv23")
 
 [node name="MusicCue" type="Node" parent="." unique_id=1659079606]
 script = ExtResource("10_cue")

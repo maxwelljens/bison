@@ -1,0 +1,8 @@
+[gd_resource type="Resource" script_class="Soundtrack" format=3 uid="uid://fbytxa0w767a"]
+
+[ext_resource type="Script" uid="uid://bbgn8i5aukqpg" path="res://Scripts/Music/soundtrack.gd" id="1_f72v8"]
+[ext_resource type="AudioStream" uid="uid://d31i1to2xcqdt" path="res://Audio/Music/preludes_31_08.ogg" id="10_u6lty"]
+
+[resource]
+script = ExtResource("1_f72v8")
+tracks = Array[AudioStream]([ExtResource("10_u6lty")])

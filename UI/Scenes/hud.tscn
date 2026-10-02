@@ -9,6 +9,10 @@
 [ext_resource type="Script" uid="uid://l7k5sh7qxna1" path="res://Scripts/HUD/player_inventory.gd" id="7_pinv"]
 [ext_resource type="FontFile" uid="uid://d15lahxggl4k3" path="res://Fonts/IosevkaCharonMono-Bold.ttf" id="8_ffofi"]
 [ext_resource type="Script" uid="uid://dnxwjcl8fuqcm" path="res://Scripts/HUD/inventory_tooltip.gd" id="9_tip"]
+[ext_resource type="Script" uid="uid://bx07gsq6c3k" path="res://Scripts/HUD/clock_graphic.gd" id="10_clk"]
+[ext_resource type="Texture2D" uid="uid://cd7ofibjxsvf7" path="res://Textures/Tiles/Transparent/tile_0020.png" id="11_ta331"]
+[ext_resource type="Texture2D" uid="uid://cw12rdxlm7eeb" path="res://Textures/Tiles/Transparent/tile_0021.png" id="12_jxd30"]
+[ext_resource type="Texture2D" uid="uid://dmfmo5opgoxeo" path="res://Textures/Tiles/Transparent/tile_0384.png" id="13_1yxy6"]
 
 [sub_resource type="AtlasTexture" id="AtlasTexture_v61m3"]
 atlas = ExtResource("4_v61m3")
@@ -18,7 +22,7 @@ region = Rect2(272, 272, 48, 48)
 font = ExtResource("8_ffofi")
 font_color = Color(0.92156863, 0.85882354, 0.69803923, 1)
 
-[node name="HUD" type="Control" unique_id=188150801 node_paths=PackedStringArray("chest_inventory", "player_inventory", "tooltip")]
+[node name="HUD" type="Control" unique_id=188150801 node_paths=PackedStringArray("chest_inventory", "player_inventory", "tooltip", "clock")]
 layout_mode = 3
 anchors_preset = 0
 theme = ExtResource("1_4xsxb")
@@ -26,14 +30,15 @@ script = ExtResource("5_hud")
 chest_inventory = NodePath("ChestInventory")
 player_inventory = NodePath("PlayerInventory")
 tooltip = NodePath("InventoryTooltip")
+clock = NodePath("Clock")
 
 [node name="ChestInventory" type="NinePatchRect" parent="." unique_id=1124244590 node_paths=PackedStringArray("grid", "tooltip")]
 self_modulate = Color(0.15686275, 0.15686275, 0.15686275, 1)
 texture_filter = 1
 layout_mode = 0
-offset_left = 360.0
+offset_left = 320.0
 offset_top = 440.0
-offset_right = 864.0
+offset_right = 824.0
 offset_bottom = 528.0
 texture = ExtResource("2_rx5l5")
 patch_margin_left = 12
@@ -71,9 +76,9 @@ columns = 6
 self_modulate = Color(0.15686275, 0.15686275, 0.15686275, 1)
 texture_filter = 1
 layout_mode = 0
-offset_left = 360.0
+offset_left = 320.0
 offset_top = 544.0
-offset_right = 864.0
+offset_right = 824.0
 offset_bottom = 632.0
 texture = SubResource("AtlasTexture_v61m3")
 patch_margin_left = 12
@@ -163,3 +168,21 @@ bbcode_enabled = true
 text = "Body"
 fit_content = true
 scroll_active = false
+
+[node name="Clock" type="Label" parent="." unique_id=1288877683]
+layout_mode = 0
+offset_left = 560.0
+offset_top = 24.0
+offset_right = 600.0
+offset_bottom = 46.0
+
+[node name="ClockGraphic" type="TextureRect" parent="." unique_id=604589248]
+layout_mode = 0
+offset_left = 568.0
+offset_top = 48.0
+offset_right = 584.0
+offset_bottom = 64.0
+script = ExtResource("10_clk")
+texture_day = ExtResource("11_ta331")
+texture_warning = ExtResource("12_jxd30")
+texture_dusk = ExtResource("13_1yxy6")

@@ -16,6 +16,7 @@ func enter(_previous: PlayerState) -> void:
 	player.velocity = Vector2.ZERO
 	intent = PlayerAnimator.Intent.DEAD
 	Loot.close_session()
+	GameClock.stop_clock()
 
 
 func physics_process(_delta: float) -> void:

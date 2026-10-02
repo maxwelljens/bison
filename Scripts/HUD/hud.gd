@@ -15,17 +15,27 @@ extends Control
 @export var player_inventory: PlayerInventory
 ## Shared hover card for both panels.
 @export var tooltip: InventoryTooltip
+## HUD clock label fed by the [code]GameClock[/code] autoload.
+@export var clock: Label
 
 # One-shot init gate for the first _process tick.
 var _initialized: bool = false
 
 
 func _process(_delta: float) -> void:
-	if _initialized:
+	if not _initialized:
+		_initialized = true
+		_init_hud()
+	_update_clock()
+
+
+## Push the current clock text only when it changes (avoids layout churn).
+func _update_clock() -> void:
+	if clock == null:
 		return
-	_initialized = true
-	set_process(false)
-	_init_hud()
+	var next_text: String = GameClock.clock_text()
+	if clock.text != next_text:
+		clock.text = next_text
 
 
 func _on_session_opened(chest: Chest) -> void:
