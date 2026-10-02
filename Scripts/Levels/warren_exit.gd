@@ -1,3 +1,4 @@
+@icon("res://addons/at-icons/node2d/doorway_exit.svg")
 extends Area2D
 ## The run's spawn point and the way back into the warren.
 ##

@@ -22,10 +22,10 @@ buses/default_bus_layout="uid://lbvjh2jlr4j2"
 
 [autoload]
 
-Loot="*res://Scripts/Loot/loot.gd"
+Loot="*res://Scripts/Globals/loot.gd"
 Music="*res://Scenes/Music/music_player.tscn"
-GameClock="*res://Scripts/Clock/game_clock.gd"
-GameFlow="*res://Scripts/GameFlow/game_flow.gd"
+GameClock="*res://Scripts/Globals/game_clock.gd"
+GameFlow="*res://Scripts/Globals/game_flow.gd"
 
 [display]
 

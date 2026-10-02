@@ -1,6 +1,6 @@
 [gd_scene format=3 uid="uid://basg53fyuc5ni"]
 
-[ext_resource type="Script" uid="uid://hve0agplp722" path="res://Scripts/Mauser/mauser.gd" id="1_mausr"]
+[ext_resource type="Script" uid="uid://hve0agplp722" path="res://Scripts/NPC/Mauser/mauser.gd" id="1_mausr"]
 [ext_resource type="Texture2D" uid="uid://cp5xdyvvgo47d" path="res://Textures/Tiles/Transparent/tile_0360.png" id="2_5vgrk"]
 [ext_resource type="Script" uid="uid://dtqu8nh2yy6b3" path="res://Scripts/NPC/npc_brain.gd" id="2_mausr"]
 [ext_resource type="Material" uid="uid://c28vjeawc5x80" path="res://Shaders/outline.tres" id="2_tdnm8"]
