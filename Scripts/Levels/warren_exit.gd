@@ -3,11 +3,13 @@ extends Area2D
 ##
 ## The scavenge spawns the player inside this zone, so a first entry must
 ## not count: the zone arms only once it has been left (or was never
-## entered), and a walk-in while armed reports occupancy to the
-## [code]GameFlow[/code] autoload — the HUD shows the return
-## confirmation and its Confirm button ends the run (the [Loot] pattern:
-## the entity reports, the autoload owns state, the UI listens). The
-## placeholder marker child makes the exit visible until real art exists.
+## entered), and a walk-in while armed and the player is alive reports
+## occupancy to the [code]GameFlow[/code] autoload — the HUD shows the
+## return confirmation and its Confirm button ends the run (the [Loot]
+## pattern: the entity reports, the autoload owns state, the UI
+## listens). A dead player cannot report an entry: death is terminal and
+## must route to the title, not the colony. The placeholder marker child
+## makes the exit visible until real art exists.
 
 ## Whether walk-in is live: set once the spawn overlap has been cleared.
 var _armed: bool = false
@@ -34,7 +36,7 @@ func _on_body_exited(body: Node2D) -> void:
 
 
 func _on_body_entered(body: Node2D) -> void:
-	if not _armed:
+	if not _armed or not GameFlow.player_alive:
 		return
 	if body is Player:
 		GameFlow.set_in_exit_zone(true)

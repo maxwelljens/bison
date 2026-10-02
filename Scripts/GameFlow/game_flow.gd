@@ -26,6 +26,11 @@ var stockpile: Dictionary[StringName, int] = {}
 var haul_banked: bool = false
 ## Whether the player currently stands in the armed warren exit.
 var in_exit_zone: bool = false
+## Whether the player is still alive — false from the moment the death
+## state is entered until the next [method new_run]. Exits are forbidden
+## while clear (DESIGN.md permadeath: a dead run cannot self-report a
+## successful return).
+var player_alive: bool = true
 
 # Guards a double-confirm from banking twice before the deferred scene
 # change lands; reset whenever a run (or fresh run) starts.
@@ -37,10 +42,19 @@ func new_run() -> void:
 	day = 1
 	stockpile.clear()
 	haul_banked = false
+	player_alive = true
 	_transitioning = false
 	Loot.close_session()
 	Loot.haul.clear()
 	Loot.haul_changed.emit()
+
+
+## The player entered the death state: forbid exiting and drop the
+## return confirmation. The delayed route to the title follows
+## separately ([method end_run]).
+func mark_player_dead() -> void:
+	player_alive = false
+	set_in_exit_zone(false)
 
 
 ## Zone occupancy report (the [Loot] pattern: the entity reports here,
@@ -71,9 +85,10 @@ func set_out() -> void:
 
 ## Confirm pressed in the exit zone: bank the haul into the stockpile,
 ## settle the clock, advance the day and report the banking on the
-## colony screen. Ignored if a transition is already in flight.
+## colony screen. Ignored while the player is dead or a transition is
+## already in flight.
 func finish_scavenge() -> void:
-	if _transitioning:
+	if not player_alive or _transitioning:
 		return
 	_transitioning = true
 	set_in_exit_zone(false)

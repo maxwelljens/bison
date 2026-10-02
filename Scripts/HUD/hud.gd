@@ -20,7 +20,8 @@ extends Control
 @export var clock: Label
 ## Return-to-warren prompt, shown while in the armed exit zone.
 @export var return_confirmation: NinePatchRect
-## Confirm: ends the run through GameFlow (banks the haul, advances the day).
+## Confirm: ends the run through GameFlow (banks the haul, advances the
+## day); no-op while the player is dead.
 @export var confirm_button: Button
 ## Deny: hides the prompt until the zone is left and re-entered.
 @export var deny_button: Button
