@@ -2,18 +2,21 @@
 extends Node
 ## Global music player - the [code]Music[/code] autoload.
 ##
-## Plays [member tracks] as a continuous sequential rotation: one track
-## after another, wrapping forever, starting on the first frame when
-## [member autoplay] is on. Two child voices ([member voice_a] /
-## [member voice_b]) alternate so every switch is a crossfade, never a
-## seam.
+## Plays a continuous sequential rotation of the active soundtrack: one
+## track after another, wrapping forever. Two child voices
+## ([member voice_a] / [member voice_b]) alternate so every switch is a
+## crossfade, never a seam.
 ##
-## The public surface is deliberately minimal - two calls:
+## Scenes declare their score: a [MusicCue] node on the scene root
+## announces a [Soundtrack] resource from its [method Node._ready],
+## which fires before this node's first-frame autoplay fallback. The
+## public surface stays small:
 ## [codeblock]
-## Music.play()      # continue the rotation (no-op if already playing)
-## Music.play(3)     # force track 3; rotation continues at 4 afterwards
-## Music.stop()      # fade out over fade_out_time
-## Music.stop(0.5)   # fade out over 0.5 s
+## Music.play_soundtrack(set)  # crossfade to a set (null/empty = stop)
+## Music.play()                # continue the rotation (no-op if already playing)
+## Music.play(3)               # force track 3; rotation continues at 4 afterwards
+## Music.stop()                # fade out over fade_out_time
+## Music.stop(0.5)             # fade out over 0.5 s
 ## [/codeblock]
 ##
 ## There are no signals and no threat/zone hooks on purpose: callers
@@ -31,11 +34,13 @@ const SILENCE_DB := -80.0
 @export var voice_b: AudioStreamPlayer
 
 @export_category("Tracks")
-## The score, in rotation order.
+## Fallback rotation, used only when no scene cue announced a
+## [Soundtrack] before autoplay's first frame.
 @export var tracks: Array[AudioStream] = []
-## Begin the rotation on the first frame after boot.
+## Begin the fallback rotation on the first frame after boot - skipped
+## when a scene cue already announced a soundtrack.
 @export var autoplay: bool = true
-## Index into [member tracks] the rotation starts on.
+## Index into [member tracks] the fallback rotation starts on.
 @export var start_track: int = 0
 
 @export_category("Transitions")
@@ -66,9 +71,15 @@ var _audible: bool = false
 var _current_index: int = -1
 ## Rotation pointer: the track [method play] resumes on.
 var _next_index: int = 0
+## The soundtrack announced via [method play_soundtrack], if any.
+var _active_set: Soundtrack
+## The rotation currently in use: the active soundtrack's tracks, or
+## [member tracks] before anything has been announced.
+var _rotation: Array[AudioStream] = []
 
 
 func _ready() -> void:
+	_rotation = tracks
 	_idle = voice_a
 	if voice_a != null:
 		voice_a.finished.connect(_on_voice_finished.bind(voice_a))
@@ -87,26 +98,51 @@ func _exit_tree() -> void:
 
 ## Autoplay starts on the first frame rather than in [method _ready]:
 ## exported refs are guaranteed resolved by then (the proven startup
-## pattern from AGENTS.md) and one frame of delay is inaudible.
+## pattern from AGENTS.md), and a scene cue's _ready has already run -
+## so autoplay only fires when nothing announced a soundtrack.
 func _process(_delta: float) -> void:
 	set_process(false)
-	if autoplay:
+	if autoplay and _current_index < 0:
 		play(start_track)
+
+
+## Crossfade the active score to [param soundtrack]. null or empty
+## means silence here (delegates to [method stop]). No-op when this
+## exact soundtrack is already playing, so scenes sharing one set
+## never interrupt each other. Scenes with no cue leave the music
+## untouched.
+func play_soundtrack(soundtrack: Soundtrack) -> void:
+	if voice_a == null or voice_b == null:
+		return
+	if soundtrack == null or soundtrack.tracks.is_empty():
+		_active_set = null
+		stop()
+		return
+	if soundtrack == _active_set and _audible:
+		return
+	if soundtrack.loop and soundtrack.tracks.size() > 1:
+		push_warning(
+			"Music: Soundtrack '%s' has loop on with %d tracks - loop ignored."
+			% [soundtrack.resource_path, soundtrack.tracks.size()]
+		)
+	_active_set = soundtrack
+	_rotation = soundtrack.tracks
+	_start_track(0)
 
 
 ## Start or resume the rotation. [param track] < 0 continues from where
 ## playback left off; >= 0 forces that track (the rotation carries on
-## from the one after it). No-op when [member tracks] is empty, when
-## refs are unwired, when already audible on the same track, or on
-## [param track] < 0 while already audible.
+## from the one after it). No-op when the active rotation is empty,
+## when refs are unwired, when already audible on the same track, or
+## on [param track] < 0 while already audible.
 func play(track: int = -1) -> void:
-	if tracks.is_empty() or voice_a == null or voice_b == null:
+	if _rotation.is_empty() or voice_a == null or voice_b == null:
 		return
 	if track < 0:
 		if _audible:
 			return
 		track = _next_index
-	track = posmod(track, tracks.size())
+	track = posmod(track, _rotation.size())
 	if _audible and track == _current_index:
 		return
 	_start_track(track)
@@ -114,11 +150,12 @@ func play(track: int = -1) -> void:
 
 ## Fade every playing voice to silence. [param fade] < 0 uses
 ## [member fade_out_time]; 0 stops instantly. Safe to call when already
-## silent. The rotation pointer is kept, so a later [method play]
-## continues where things stood.
+## silent. Forgets the active soundtrack, so a later cue or [method play]
+## starts fresh.
 func stop(fade: float = -1.0) -> void:
 	_kill_tween()
 	_audible = false
+	_active_set = null
 	var fading := _playing()
 	if fading.is_empty():
 		_retire()
@@ -137,17 +174,24 @@ func stop(fade: float = -1.0) -> void:
 
 
 ## Play [param index] on the idle voice, fading it up while every other
-## playing voice fades down; then retire the leftovers.
+## playing voice fades down; then retire the leftovers. Applies the
+## active soundtrack's loop flag to the stream (single-track sets only).
 func _start_track(index: int) -> void:
-	index = posmod(index, tracks.size())
+	index = posmod(index, _rotation.size())
 	var incoming: AudioStreamPlayer = _idle if _idle != null else voice_a
 	var switching := _active != null
 	_kill_tween()
-	incoming.stream = tracks[index]
+	var stream := _rotation[index]
+	var ogg := stream as AudioStreamOggVorbis
+	if ogg != null:
+		ogg.loop = (
+			_active_set != null and _active_set.loop and _rotation.size() == 1
+		)
+	incoming.stream = stream
 	incoming.volume_db = SILENCE_DB
 	incoming.play()
 	_current_index = index
-	_next_index = posmod(index + 1, tracks.size())
+	_next_index = posmod(index + 1, _rotation.size())
 	_active = incoming
 	_idle = voice_b if incoming == voice_a else voice_a
 	_audible = true
@@ -167,7 +211,7 @@ func _start_track(index: int) -> void:
 
 ## A voice ended on its own: continue the rotation with the next track.
 func _on_voice_finished(voice: AudioStreamPlayer) -> void:
-	if voice != _active or not _audible or tracks.is_empty():
+	if voice != _active or not _audible or _rotation.is_empty():
 		return
 	_start_track(_next_index)
 

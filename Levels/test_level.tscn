@@ -9,8 +9,14 @@
 [ext_resource type="PackedScene" uid="uid://beomhqbeouj18" path="res://Scenes/chest.tscn" id="7_ub4j8"]
 [ext_resource type="Script" uid="uid://dphjmjusdjmux" path="res://Scripts/Tilemap/tile_palette.gd" id="8_pal"]
 [ext_resource type="PackedScene" uid="uid://basg53fyuc5ni" path="res://Scenes/mauser.tscn" id="9_mausr"]
+[ext_resource type="Script" uid="uid://c43emlhjqykc1" path="res://Scripts/Music/music_cue.gd" id="10_cue"]
+[ext_resource type="Resource" path="res://Audio/Music/sets/gameplay.tres" id="11_set"]
 
 [node name="TestLevel" type="Node2D" unique_id=277619520]
+
+[node name="MusicCue" type="Node" parent="." unique_id=1659079606]
+script = ExtResource("10_cue")
+soundtrack = ExtResource("11_set")
 
 [node name="Foreground" type="CanvasLayer" parent="." unique_id=51396446]
 

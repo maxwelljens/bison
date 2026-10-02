@@ -133,10 +133,19 @@ commit them. The warren (hidden burrow system) is the colony home.
   (~40 min), played by the `Music` autoload
   (`Scenes/Music/music_player.tscn` → `Scripts/Music/music_player.gd`):
   two `AudioStreamPlayer` voices on the existing `Music` bus
-  crossfade (1 s default), sequential rotation, autoplay from boot.
-  API is deliberately minimal — `play(track := -1)` /
-  `stop(fade := -1.0)`; no signals, no threat hooks (chase-reactive
-  music is recorded as OPEN in DESIGN.md §8, not wired).
+  crossfade (1 s default), sequential rotation over the active
+  soundtrack, autoplay from boot only when nothing announced a score
+  first. Per-scene scores: a `Soundtrack` resource
+  (`Audio/Music/sets/*.tres`: `tracks` + `loop`) names a playlist;
+  one `MusicCue` node on a scene root announces it in `_ready` via
+  `Music.play_soundtrack()` — no cue = music unchanged, null/empty
+  soundtrack = fade out ("silence here"), a set already playing =
+  no-op (shared sets never interrupt). `Soundtrack.loop` = gapless
+  decoder loop for single-track sets (multi-track warns + ignored;
+  `loop` rides on the AudioStreamOggVorbis). API:
+  `play_soundtrack(set)` / `play(track := -1)` / `stop(fade := -1.0)`;
+  no signals, no threat hooks (chase-reactive music is recorded as
+  OPEN in DESIGN.md §8, not wired).
 - Input map (`project.godot`): `move_left` (A/←), `move_right` (D/→),
   `jump` (Space only), `move_up` (W/↑, ladders only — inert elsewhere),
   `move_down` (S/↓). Keyboard only, no gamepad bindings.

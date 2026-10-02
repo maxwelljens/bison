@@ -1,24 +1,14 @@
-[gd_scene format=3 uid="uid://cxtf1hhiqa1ff"]
+[gd_scene load_steps=2 format=4]
 
-[ext_resource type="Script" uid="uid://bxo3373dgo2ek" path="res://Scripts/Music/music_player.gd" id="1_script"]
-[ext_resource type="AudioStream" uid="uid://dpq8hjbw6ia57" path="res://Audio/Music/etude_(aeolian_harp)_op_25_1.ogg" id="2_t1"]
-[ext_resource type="AudioStream" uid="uid://dhl182nbrcssv" path="res://Audio/Music/etude_op_10_no_12.ogg" id="2_t2"]
-[ext_resource type="AudioStream" uid="uid://bhd0dt1lkhds" path="res://Audio/Music/gnossienne_1.ogg" id="2_t3"]
-[ext_resource type="AudioStream" uid="uid://xyy8brc13fj4" path="res://Audio/Music/mussorgsky_pictures_at_an_exhibition.ogg" id="2_t4"]
-[ext_resource type="AudioStream" uid="uid://b6rqwb6368f" path="res://Audio/Music/nocturne_op_27_2.ogg" id="2_t5"]
-[ext_resource type="AudioStream" uid="uid://crbhaqwm3j2rh" path="res://Audio/Music/nocturne_op_9_1_b.ogg" id="2_t6"]
-[ext_resource type="AudioStream" uid="uid://canowsnuxryoi" path="res://Audio/Music/nocturne_op_9_1_e.ogg" id="2_t7"]
-[ext_resource type="AudioStream" uid="uid://d0s4rj5rkkkih" path="res://Audio/Music/preludes_1_8.ogg" id="2_t8"]
-[ext_resource type="AudioStream" uid="uid://d31i1to2xcqdt" path="res://Audio/Music/preludes_31_08.ogg" id="2_t9"]
+[ext_resource type="Script" path="res://Scripts/Music/music_player.gd" id="1_script"]
 
-[node name="MusicPlayer" type="Node" unique_id=1686153186 node_paths=PackedStringArray("voice_a", "voice_b")]
+[node name="MusicPlayer" type="Node" node_paths=PackedStringArray("voice_a", "voice_b")]
 script = ExtResource("1_script")
 voice_a = NodePath("VoiceA")
 voice_b = NodePath("VoiceB")
-tracks = Array[AudioStream]([ExtResource("2_t1"), ExtResource("2_t2"), ExtResource("2_t3"), ExtResource("2_t4"), ExtResource("2_t5"), ExtResource("2_t6"), ExtResource("2_t7"), ExtResource("2_t8"), ExtResource("2_t9")])
 
-[node name="VoiceA" type="AudioStreamPlayer" parent="." unique_id=1742330854]
+[node name="VoiceA" type="AudioStreamPlayer" parent="."]
 bus = &"Music"
 
-[node name="VoiceB" type="AudioStreamPlayer" parent="." unique_id=1157658202]
+[node name="VoiceB" type="AudioStreamPlayer" parent="."]
 bus = &"Music"
