@@ -140,12 +140,21 @@ commit them. The warren (hidden burrow system) is the colony home.
   one `MusicCue` node on a scene root announces it in `_ready` via
   `Music.play_soundtrack()` — no cue = music unchanged, null/empty
   soundtrack = fade out ("silence here"), a set already playing =
-  no-op (shared sets never interrupt). `Soundtrack.loop` = gapless
-  decoder loop for single-track sets (multi-track warns + ignored;
-  `loop` rides on the AudioStreamOggVorbis). API:
-  `play_soundtrack(set)` / `play(track := -1)` / `stop(fade := -1.0)`;
-  no signals, no threat hooks (chase-reactive music is recorded as
-  OPEN in DESIGN.md §8, not wired).
+  no-op (shared sets never interrupt). Base vs. interrupts:
+  `play_soundtrack(set)` sets the *base* (scene cue / future phase
+  system, e.g. day→night); `request(set, priority)` raises a
+  refcounted interrupt above it and `release(set)` drops one count —
+  highest priority plays (ties: most recently added), fallback is
+  automatic so a base flip mid-interrupt is picked up the moment the
+  interrupt releases, and `play_soundtrack(null)`/`stop()` clear base
+  AND requests (scene "silence here" outranks stale interrupts).
+  `Soundtrack.loop` = gapless decoder loop for single-track sets
+  (multi-track warns + ignored; `loop` rides on the
+  AudioStreamOggVorbis). API: `play_soundtrack(set)` /
+  `request(set, priority)` / `release(set)` / `play(track := -1)` /
+  `stop(fade := -1.0)`; no signals, and no game code calls `request`
+  yet — chase-reactive music stays OPEN in DESIGN.md §8 until a
+  threat system wires it.
 - Input map (`project.godot`): `move_left` (A/←), `move_right` (D/→),
   `jump` (Space only), `move_up` (W/↑, ladders only — inert elsewhere),
   `move_down` (S/↓). Keyboard only, no gamepad bindings.

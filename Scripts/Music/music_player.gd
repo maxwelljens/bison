@@ -2,30 +2,45 @@
 extends Node
 ## Global music player - the [code]Music[/code] autoload.
 ##
-## Plays a continuous sequential rotation of the active soundtrack: one
+## Plays a continuous sequential rotation of the winning soundtrack: one
 ## track after another, wrapping forever. Two child voices
 ## ([member voice_a] / [member voice_b]) alternate so every switch is a
 ## crossfade, never a seam.
 ##
-## Scenes declare their score: a [MusicCue] node on the scene root
-## announces a [Soundtrack] resource from its [method Node._ready],
-## which fires before this node's first-frame autoplay fallback. The
-## public surface stays small:
+## [b]Base vs. interrupts:[/b] scenes announce their base score with a
+## [MusicCue] node (a [Soundtrack] resource) via [method play_soundtrack];
+## temporary conditions (a chase, an alarm) sit above it as requests:
 ## [codeblock]
-## Music.play_soundtrack(set)  # crossfade to a set (null/empty = stop)
+## Music.play_soundtrack(set)  # set the base score (null/empty = silence)
+## Music.request(set, priority) # interrupt over the base (higher wins)
+## Music.release(set)           # end that interrupt; fall back automatically
 ## Music.play()                # continue the rotation (no-op if already playing)
 ## Music.play(3)               # force track 3; rotation continues at 4 afterwards
-## Music.stop()                # fade out over fade_out_time
+## Music.stop()                # fade out; forgets base AND all requests
 ## Music.stop(0.5)             # fade out over 0.5 s
 ## [/codeblock]
 ##
-## There are no signals and no threat/zone hooks on purpose: callers
-## appear when the systems that need them exist. Chase-reactive music
-## is recorded as OPEN in DESIGN.md section 8 and is not wired here.
+## The highest-priority live request plays; with no requests the base
+## plays. Requests are refcounted (each request needs one release), a
+## base change under an interrupt is recorded but not shown until the
+## interrupt releases, and ties resolve to the most recently added
+## request. [method stop] is the escape hatch: scene "silence here"
+## outranks stale interrupts.
+##
+## The machinery is generic on purpose - no game code calls
+## [method request] yet. Chase-reactive music stays recorded as OPEN in
+## DESIGN.md section 8 until a threat system wires it.
 
 ## Floor volume used to silence a voice (dB); the audible target is
 ## [member volume_db].
 const SILENCE_DB := -80.0
+
+## One requested soundtrack with its priority and live request count.
+class Request:
+	extends RefCounted
+	var soundtrack: Soundtrack
+	var priority: int = 0
+	var count: int = 0
 
 @export_category("Refs")
 ## First crossfade voice; a child of this node, wired in the scene.
@@ -65,14 +80,18 @@ var _active: AudioStreamPlayer
 var _idle: AudioStreamPlayer
 ## The one transition fade in flight, if any.
 var _tween: Tween
-## Whether playback should be audible (false during [method stop]).
+## Whether playback should be audible (false while fading out).
 var _audible: bool = false
 ## Track most recently started; -1 before the first one.
 var _current_index: int = -1
 ## Rotation pointer: the track [method play] resumes on.
 var _next_index: int = 0
-## The soundtrack announced via [method play_soundtrack], if any.
+## The base score (scene cue / phase system); plays when no request is live.
+var _base_set: Soundtrack
+## The soundtrack currently playing (the winner of base vs. requests).
 var _active_set: Soundtrack
+## Live interrupt requests, in creation order.
+var _requests: Array[Request] = []
 ## The rotation currently in use: the active soundtrack's tracks, or
 ## [member tracks] before anything has been announced.
 var _rotation: Array[AudioStream] = []
@@ -106,28 +125,61 @@ func _process(_delta: float) -> void:
 		play(start_track)
 
 
-## Crossfade the active score to [param soundtrack]. null or empty
-## means silence here (delegates to [method stop]). No-op when this
-## exact soundtrack is already playing, so scenes sharing one set
-## never interrupt each other. Scenes with no cue leave the music
-## untouched.
+## Set the base score; the highest-priority live request (if any) keeps
+## the stage until it releases. null or empty means silence here and
+## clears all requests (delegates to [method stop]) - a scene's
+## "silence here" outranks stale interrupts. No-op when this exact
+## soundtrack already won, so scenes sharing one set never interrupt
+## each other. Scenes with no cue leave the music untouched.
 func play_soundtrack(soundtrack: Soundtrack) -> void:
 	if voice_a == null or voice_b == null:
 		return
-	if soundtrack == null or soundtrack.tracks.is_empty():
-		_active_set = null
+	if soundtrack != null and soundtrack.tracks.is_empty():
+		soundtrack = null
+	if soundtrack == null:
 		stop()
 		return
-	if soundtrack == _active_set and _audible:
+	_base_set = soundtrack
+	_sync_to_winner()
+
+
+## Raise a refcounted interrupt above the base. The highest priority
+## wins; equal priorities resolve to the most recently added request.
+## Safe to call repeatedly - each call needs one matching
+## [method release].
+func request(soundtrack: Soundtrack, priority: int = 0) -> void:
+	if voice_a == null or voice_b == null:
 		return
-	if soundtrack.loop and soundtrack.tracks.size() > 1:
-		push_warning(
-			"Music: Soundtrack '%s' has loop on with %d tracks - loop ignored."
-			% [soundtrack.resource_path, soundtrack.tracks.size()]
-		)
-	_active_set = soundtrack
-	_rotation = soundtrack.tracks
-	_start_track(0)
+	if soundtrack == null or soundtrack.tracks.is_empty():
+		return
+	for existing: Request in _requests:
+		if existing.soundtrack == soundtrack:
+			existing.count += 1
+			existing.priority = maxi(existing.priority, priority)
+			_sync_to_winner()
+			return
+	var entry := Request.new()
+	entry.soundtrack = soundtrack
+	entry.priority = priority
+	entry.count = 1
+	_requests.append(entry)
+	_sync_to_winner()
+
+
+## Drop one request for [param soundtrack]; at zero the interrupt ends
+## and playback falls back to the next request (or the base, whatever
+## it is now - a phase change mid-interrupt is picked up here).
+## Releasing a set that is not requested is a harmless no-op.
+func release(soundtrack: Soundtrack) -> void:
+	if soundtrack == null:
+		return
+	for index: int in _requests.size():
+		if _requests[index].soundtrack == soundtrack:
+			_requests[index].count -= 1
+			if _requests[index].count <= 0:
+				_requests.remove_at(index)
+			_sync_to_winner()
+			return
 
 
 ## Start or resume the rotation. [param track] < 0 continues from where
@@ -148,14 +200,49 @@ func play(track: int = -1) -> void:
 	_start_track(track)
 
 
-## Fade every playing voice to silence. [param fade] < 0 uses
-## [member fade_out_time]; 0 stops instantly. Safe to call when already
-## silent. Forgets the active soundtrack, so a later cue or [method play]
-## starts fresh.
+## Fade every playing voice to silence, forgetting the base and every
+## request. [param fade] < 0 uses [member fade_out_time]; 0 stops
+## instantly. Safe to call when already silent.
 func stop(fade: float = -1.0) -> void:
+	_base_set = null
+	_requests.clear()
+	_active_set = null
+	_silence(fade)
+
+
+## Crossfade to the current winner of base vs. requests (or to silence
+## when nothing won).
+func _sync_to_winner() -> void:
+	var winner := _winner()
+	if winner == _active_set and _audible:
+		return
+	_active_set = winner
+	if winner == null:
+		_silence()
+		return
+	if winner.loop and winner.tracks.size() > 1:
+		push_warning(
+			"Music: Soundtrack '%s' has loop on with %d tracks - loop ignored."
+			% [winner.resource_path, winner.tracks.size()]
+		)
+	_rotation = winner.tracks
+	_start_track(0)
+
+
+## The live request with the highest priority (ties: most recently
+## added); the base when no requests are live.
+func _winner() -> Soundtrack:
+	var best: Request = null
+	for entry: Request in _requests:
+		if best == null or entry.priority >= best.priority:
+			best = entry
+	return best.soundtrack if best != null else _base_set
+
+
+## Fade every playing voice to silence without touching state.
+func _silence(fade: float = -1.0) -> void:
 	_kill_tween()
 	_audible = false
-	_active_set = null
 	var fading := _playing()
 	if fading.is_empty():
 		_retire()
@@ -224,7 +311,7 @@ func _on_fade_finished() -> void:
 			voice.stop()
 
 
-## Stop fade done: everything silent, ready for a fresh start.
+## Fade-out done: everything silent, ready for a fresh start.
 func _on_stop_finished() -> void:
 	for voice: AudioStreamPlayer in _voices():
 		if voice.playing:
@@ -232,7 +319,7 @@ func _on_stop_finished() -> void:
 	_retire()
 
 
-## Forget the active voice; the next [method play] starts from scratch.
+## Forget the active voice; the next start plays from scratch.
 func _retire() -> void:
 	_tween = null
 	_active = null

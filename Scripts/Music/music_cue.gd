@@ -6,7 +6,9 @@ extends Node
 ## Place one on a scene root: when the scene loads, its [method Node._ready]
 ## calls [code]Music.play_soundtrack()[/code] and the autoload crossfades
 ## to [member soundtrack]. Scene changes therefore carry their own score
-## with no central registry to maintain.
+## with no central registry to maintain. The cue sets the scene's *base*
+## score; temporary interrupts (see [code]Music.request()[/code]) ride
+## above it and fall back to the base when released.
 ##
 ## Conventions:
 ## - No cue in the scene: the music keeps playing, unchanged.
